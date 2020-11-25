@@ -1,1 +1,4 @@
-fn main() {}
+mod hello;
+fn main() {
+    hello::hello();
+}

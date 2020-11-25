@@ -228,8 +228,8 @@ class dirModule(Module):
                     (S('"sequence": [') //
                      '"workbench.action.files.saveAll",' //
                      (S('{"command": "workbench.action.terminal.sendSequence","args": {"text":', '}}]') //
-                        (S(f'"\\u000D','\\u000D"\n',inline=True)//\
-                        self.d.vscode.settings.f12))))
+                        (S(f'"\\u000D', '\\u000D"\n', inline=True) //
+                         self.d.vscode.settings.f12))))
         self.d.vscode.settings.f12 = S('clear;make')
         self.d.vscode.settings.multi //\
             (S('"multiCommand.commands": [', '],') //
@@ -376,6 +376,14 @@ class rsFile(File):
     def __init__(self, V, ext='.rs', comment='//'):
         super().__init__(V, ext)
 
+class Meta(Object): pass
+class Fn(Meta): pass
+class rsFn(Fn):
+    def file(self, to):
+        ret = S(f'fn {self.value}() {{','}')
+        for j in self.nest:
+            ret // j
+        return ret.file(to)
 
 class rsModule(dirModule):
     def __init__(self, V=None):
@@ -386,7 +394,9 @@ class rsModule(dirModule):
         self.init_cargo()
         self.d.src.main = rsFile('main')
         self.d.src // self.d.src.main
-        self.d.src.main // 'fn main() {}'
+        self.d.src.main //\
+            'mod hello;' //\
+            (rsFn('main') // 'hello::hello();')
 
     def init_giti(self):
         super().init_giti()
