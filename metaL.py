@@ -211,19 +211,42 @@ class dirModule(Module):
 
     def init_vscode_settings(self):
         self.d.vscode.settings = Section('settings')
+        self.d.vscode.settings.multi = Section('multi')
+        self.d.vscode.settings // self.d.vscode.settings.multi
+        #
+
+        def multi(key, cmd):
+            return (S('{', '},') //
+                    S(f'"command": "multiCommand.{key}",') //
+                    (S('"sequence": [') //
+                     '"workbench.action.files.saveAll",' //
+                     (S('{"command": "workbench.action.terminal.sendSequence","args": {"text":', '}}]') //
+                        f'"\\u000D clear ; {cmd} \\u000D"')))
+        self.d.vscode.settings.multi //\
+            (S('"multiCommand.commands": [', '],') //
+             multi('f12', 'make'))
+        #
+        self.d.vscode.settings.watcher = Section('watcher')
+        self.d.vscode.settings // self.d.vscode.settings.watcher
+
+        #
+        self.d.vscode.settings.exclude = Section('exclude')
+        self.d.vscode.settings // self.d.vscode.settings.exclude
+        #
+        self.d.vscode.settings.assoc = Section('assoc')
+        self.d.vscode.settings // self.d.vscode.settings.assoc
+        #
         self.d.vscode //\
             (jsonFile('settings') //
              (S('{', '}') //
-
-                ''))
-        #   self.d.vscode.settings))
-        #  (self.d.vscode.settings)
-        #  //\
-        #     '"stkb.rewrap",')
-        # self.d.vscode.settings //\
-        #
-        #
-        #       self.d.vscode.settings))
+              self.d.vscode.settings.multi //
+              (S('"files.watcherExclude": {', '},') //
+               self.d.vscode.settings.watcher) //
+                (S('"files.exclude": {', '},') //
+                 self.d.vscode.settings.exclude) //
+                (S('"files.associations": {', '},') //
+                 self.d.vscode.settings.assoc) //
+                '"editor.tabSize": 4'))
 
     def init_vscode_extensions(self):
         self.d.vscode.extensions = Section('extensions')
@@ -378,6 +401,13 @@ class rsModule(dirModule):
             '$(CARGO) run'
         self.d.mk.install //\
             '$(CARGO) build'
+
+    def init_vscode_settings(self):
+        super().init_vscode_settings()
+        self.d.vscode.settings.watcher //\
+            '"**/target/**":true,'
+        self.d.vscode.settings.exclude //\
+            '"**/target/**":true,'
 
     def init_vscode_extensions(self):
         super().init_vscode_extensions()

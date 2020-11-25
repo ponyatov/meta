@@ -1,3 +1,27 @@
 {
-    
+    /* \ <section:multi> */
+    "multiCommand.commands": [
+        {
+            "command": "multiCommand.f12",
+            "sequence": [
+                "workbench.action.files.saveAll",
+                {"command": "workbench.action.terminal.sendSequence","args": {"text":
+                    "\u000D clear ; make \u000D"
+                }}]
+        },
+    ],
+    /* / <section:multi> */
+    "files.watcherExclude": {
+        /* \ <section:watcher> */
+        "**/target/**":true,
+        /* / <section:watcher> */
+    },
+    "files.exclude": {
+        /* \ <section:exclude> */
+        "**/target/**":true,
+        /* / <section:exclude> */
+    },
+    "files.associations": {
+    },
+    "editor.tabSize": 4
 }
