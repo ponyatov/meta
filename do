@@ -7,6 +7,7 @@ import re
 mod = sys.argv[1]
 print(f'mod: {mod}')
 
+
 with open('Makefile') as R:
     F = R.read()
 if not re.findall(f'{mod}.py', F):
@@ -20,6 +21,7 @@ if not re.findall(f'{mod}.py', F):
             f'\n{mod}: $(PY) $(S)\n\t$(MAKE) pep\n\t$(PY) {mod}.py\n#M',
             F)
         W.write(F)
+
 
 with open('.vscode/settings.json') as R:
     F = R.read()
@@ -51,4 +53,4 @@ ABOUT
 sync()
 ''')
 
-    os.system(f'code {mod}.py')
+os.system(f'code {mod}.py')
