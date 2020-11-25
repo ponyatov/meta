@@ -24,7 +24,8 @@ mod.ABOUT = """
 """
 mod.d.readme.rust // """
 * [Rust CS196 FA20](https://www.youtube.com/playlist?list=PLddc343N7YqhSPMjlCJa1gRDt4CzjiMYZ)
-    * [Welcome to 196! - CS196 FA20](https://www.youtube.com/watch?v=J__JvfNuknU&list=PLddc343N7YqhSPMjlCJa1gRDt4CzjiMYZ&index=1)
+    * [Welcome to 196! - CS196 FA20](https://www.youtube.com/watch?v=J__JvfNuknU&list=PLddc343N7YqhSPMjlCJa1gRDt4CzjiMYZ&index=1&t=795s)
+    * [Rust 1 - Lecture 17 - CS196 FA20](https://www.youtube.com/watch?v=ac7AOtkQMx4)
 """
 
 sync()
