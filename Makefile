@@ -10,9 +10,15 @@ PEP = $(CWD)/bin/autopep8
 
 S += metaL.py
 S += bully.py
+S += ./do
+#S
+
+.PHONY: pep
+pep: $(PEP) $(S)
+	$(PEP) --in-place $(S)
 
 bully: $(PY) $(S)
-	$(PEP) -i bully.py
+	$(MAKE) pep
 	$(PY) bully.py
 
 $(PY) $(PIP):

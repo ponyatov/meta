@@ -12,3 +12,5 @@ Django-приложение написанное с использованием
 * универсальная шаблонизация кода
 """
 mod.GITHUB = 'https://bitbucket.org/ponyatov/'
+
+sync()

@@ -5,7 +5,7 @@
             "sequence": [
                 "workbench.action.files.saveAll",
                 {"command": "workbench.action.terminal.sendSequence","args": {"text": 
-                    "\u000Dmake bully\u000D"
+                    "\u000Dmake pep ; ./do ruts\u000D"
                 }}
             ]
         },
@@ -21,6 +21,7 @@
         "**/share/**": true, "**/*.pyc": true, "**/pyvenv.cfg": true,
     },
     "files.associations": {
+        "./do":"python",
     },
     "editor.tabSize": 4,
 }
