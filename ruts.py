@@ -10,7 +10,9 @@ class thisModule(dirModule):
 mod = thisModule()
 mod.TITLE = 'ruts'
 mod.ABOUT = """
-ABOUT
+### Rust CS196 FA20
+
+* https://www.youtube.com/watch?v=J__JvfNuknU
 """
 
 sync()
