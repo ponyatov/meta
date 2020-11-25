@@ -9,8 +9,11 @@ print(f'mod: {mod}')
 
 with open('Makefile') as R:
     F = R.read()
-if not re.match(f'{mod}', F):
+if not re.findall(f'{mod}.py', F):
     with open('Makefile', 'w') as W:
+        F = re.sub(r'#S', f'S += {mod}.py\n#S', F)
+        F = re.sub(
+            r'#M', f'\n{mod}: $(PY) $(S)\n\t$(MAKE) pep\n\t$(PY) {mod}.py\n#M', F)
         W.write(F)
 
 try:

@@ -11,6 +11,7 @@ PEP = $(CWD)/bin/autopep8
 S += metaL.py
 S += bully.py
 S += ./do
+S += ruts.py
 #S
 
 .PHONY: pep
@@ -20,6 +21,11 @@ pep: $(PEP) $(S)
 bully: $(PY) $(S)
 	$(MAKE) pep
 	$(PY) bully.py
+
+ruts: $(PY) $(S)
+	$(MAKE) pep
+	$(PY) ruts.py
+#M
 
 $(PY) $(PIP):
 	python3 -m venv .
