@@ -1,0 +1,26 @@
+{
+    "multiCommand.commands": [
+        {
+            "command": "multiCommand.f12",
+            "sequence": [
+                "workbench.action.files.saveAll",
+                {"command": "workbench.action.terminal.sendSequence","args": {"text": 
+                    "\u000Dmake bully\u000D"
+                }}
+            ]
+        },
+    ],
+    "files.watcherExclude": {
+        "**/__pycache__/**": true,
+        "**/bin/**": true, "**/include/**": true, "**/lib*/**": true,
+        "**/share/**": true, "**/*.pyc": true, "**/pyvenv.cfg": true,
+    },
+    "files.exclude": {
+        "**/__pycache__/**": true,
+        "**/bin/**": true, "**/include/**": true, "**/lib*/**": true,
+        "**/share/**": true, "**/*.pyc": true, "**/pyvenv.cfg": true,
+    },
+    "files.associations": {
+    },
+    "editor.tabSize": 4,
+}
