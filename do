@@ -11,10 +11,29 @@ with open('Makefile') as R:
     F = R.read()
 if not re.findall(f'{mod}.py', F):
     with open('Makefile', 'w') as W:
-        F = re.sub(r'#S', f'S += {mod}.py\n#S', F)
         F = re.sub(
-            r'#M', f'\n{mod}: $(PY) $(S)\n\t$(MAKE) pep\n\t$(PY) {mod}.py\n#M', F)
+            r'#S',
+            f'S += {mod}.py\n#S',
+            F)
+        F = re.sub(
+            r'#M',
+            f'\n{mod}: $(PY) $(S)\n\t$(MAKE) pep\n\t$(PY) {mod}.py\n#M',
+            F)
         W.write(F)
+
+with open('.vscode/settings.json') as R:
+    F = R.read()
+if not re.findall(f'make {mod}', F):
+    with open('.vscode/settings.json', 'w') as W:
+        F = re.sub(
+            r'\u000D.?\u000D',
+            f'\\u000D clear ; make {mod} \\u000D',
+            F)
+        # F = re.sub(r'#S', f'S += {mod}.py\n#S', F)
+        # F = re.sub(
+        #     r'#M', f'\n{mod}: $(PY) $(S)\n\t$(MAKE) pep\n\t$(PY) {mod}.py\n#M', F)
+        W.write(F)
+
 
 try:
     open(f'{mod}.py')
@@ -35,4 +54,5 @@ ABOUT
 
 sync()
 ''')
+
     os.system(f'code {mod}.py')

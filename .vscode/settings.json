@@ -21,7 +21,7 @@
         "**/share/**": true, "**/*.pyc": true, "**/pyvenv.cfg": true,
     },
     "files.associations": {
-        "./do":"python",
+        "./do": "python",
     },
     "editor.tabSize": 4,
 }
