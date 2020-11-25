@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "stkb.rewrap",
+        /* \ <section:extensions> */
+        "bungcip.better-toml",
+        "rust-lang.rust",
+        /* / <section:extensions> */
+    ]
+}

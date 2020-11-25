@@ -29,8 +29,11 @@ class Object:
         self.synq()
 
     def __format__(self, spec):
-        assert not spec
-        return f'{self.value}'
+        if spec == '':
+            return f'{self.value}'
+        if spec == 'l':
+            return f'{self.value.lower()}'
+        raise TypeError(spec)
 
     def keys(self):
         return sorted(self.slot.keys())
@@ -86,17 +89,29 @@ class Primitive(Object):
 
 class S(Primitive):
 
-    def __init__(self, V, pfx=None):
+    def __init__(self, begin=None, end='', pfx=None, inline=False):
+        V = f'{begin}' if begin != None else ''
         super().__init__(V)
+        self.begin = begin
+        self.end = end
         self.pfx = pfx
+        self.inline = inline
 
     def file(self, to, depth=0):
         ret = ''
         if self.pfx != None:
             ret += f'{to.tab*depth}{self.pfx}\n'
-        ret += f'{to.tab*depth}{self.value}\n'
-        for j in self.nest:
-            ret += j.file(to, depth+1)
+        if self.begin != None:
+            ret += f'{to.tab*depth}{self.value}'
+        if self.inline:
+            for j in self.nest:
+                ret += f' {j.value}'
+        else:
+            ret += '\n'
+            for j in self.nest:
+                ret += j.file(to, depth+1)
+        if self.end:
+            ret += f'{to.tab*depth}{self.end}\n'
         return ret
 
 
@@ -120,7 +135,7 @@ class IO(Object):
 class Dir(IO):
 
     def __init__(self, V):
-        assert re.match(r'[a-z]+', V)
+        assert re.match(r'\.?[a-z]+', V)
         super().__init__(V)
         self.path = V
 
@@ -149,6 +164,8 @@ class File(IO):
         self.tab = tab
         self.comment = comment
         self.commend = ''
+        if self.comment == '/*':
+            self.commend = ' */'
 
     def sync(self):
         if super().sync():
@@ -160,6 +177,11 @@ class File(IO):
 class mkFile(File):
     def __init__(self, V='Makefile', ext='', tab='\t', comment='#'):
         super().__init__(V, ext, tab, comment)
+
+
+class jsonFile(File):
+    def __init__(self, V, ext='.json', comment='/*'):
+        super().__init__(V, ext, comment=comment)
 
 
 class Module(Object):
@@ -179,6 +201,38 @@ class dirModule(Module):
         self.init_giti()
         self.init_meta()
         self.init_readme()
+        self.init_vscode()
+
+    def init_vscode(self):
+        self.d.vscode = Dir('.vscode')
+        self.d // self.d.vscode
+        self.init_vscode_settings()
+        self.init_vscode_extensions()
+
+    def init_vscode_settings(self):
+        self.d.vscode.settings = Section('settings')
+        self.d.vscode //\
+            (jsonFile('settings') //
+             (S('{', '}') //
+
+                ''))
+        #   self.d.vscode.settings))
+        #  (self.d.vscode.settings)
+        #  //\
+        #     '"stkb.rewrap",')
+        # self.d.vscode.settings //\
+        #
+        #
+        #       self.d.vscode.settings))
+
+    def init_vscode_extensions(self):
+        self.d.vscode.extensions = Section('extensions')
+        self.d.vscode //\
+            (jsonFile('extensions') //
+             (S('{', '}') //
+                (S('"recommendations": [', ']') //
+                 '"stkb.rewrap",' //
+                 self.d.vscode.extensions)))
 
     def init_mk(self):
         self.d.mk = mkFile()
@@ -187,24 +241,58 @@ class dirModule(Module):
         self.d.mk.var = Section('var')
         self.d.mk //\
             (self.d.mk.var //
-             f'{"MODULE":<11} = $(notdir $(CURDIR))' //
-             f'{"OS":<11} = $(shell uname -s)' //
-             f'{"MACHINE":<11} = $(shell uname -m)')
+             f'{"MODULE":<7} = $(notdir $(CURDIR))' //
+             f'{"OS":<7} = $(shell uname -s)' //
+             f'{"MACHINE":<7} = $(shell uname -m)')
         #
         self.d.mk.dir = Section('dir')
         self.d.mk //\
             (self.d.mk.dir //
-             f'{"CWD":<11} = $(CURDIR)' //
-             f'{"DOC":<11} = $(CWD)/doc' //
-             f'{"BIN":<11} = $(CWD)/bin' //
-             f'{"SRC":<11} = $(CWD)/src' //
-             f'{"TMP":<11} = $(CWD)/tmp'
+             f'{"CWD":<7} = $(CURDIR)' //
+             f'{"DOC":<7} = $(CWD)/doc' //
+             f'{"BIN":<7} = $(CWD)/bin' //
+             f'{"SRC":<7} = $(CWD)/src' //
+             f'{"TMP":<7} = $(CWD)/tmp'
              )
-        for i in ['doc', 'bin', 'src', 'tmp']:
-            ii = Dir(i)
-            self.d // ii
-            ii.giti = File('.gitignore')
-            ii // ii.giti
+        #
+        self.d.doc = Dir('doc')
+        self.d // (self.d.doc // File('.gitignore'))
+        self.d.bin = Dir('bin')
+        self.d // (self.d.bin // File('.gitignore'))
+        self.d.src = Dir('src')
+        self.d // (self.d.src // File('.gitignore'))
+        self.d.tmp = Dir('tmp')
+        self.d // (self.d.tmp // File('.gitignore'))
+        #
+        self.d.mk.tool = Section('tool')
+        self.d.mk //\
+            (self.d.mk.tool //
+             f'{"WGET":<7} = wget -c')
+        #
+        self.d.mk.obj = Section('obj')
+        self.d.mk // self.d.mk.obj
+        #
+        self.d.mk.all = Section('all')
+        self.d.mk.all.target = S()
+        self.d.mk.all.body = S()
+        self.d.mk //\
+            (self.d.mk.all //
+             (S('all:', pfx='.PHONY: all', inline=True) //
+              self.d.mk.all.target) //
+             (self.d.mk.all.body)
+             )
+        #
+        self.d.mk.install = Section('install')
+        self.d.mk.update = Section('update')
+        self.d.mk //\
+            (Section('install') //
+             (S('install: $(OS)_install', pfx='.PHONY: install') //
+              self.d.mk.install) //
+             (S('update: $(OS)_update', pfx='.PHONY: update') //
+              self.d.mk.update) //
+             (S('$(OS)_install $(OS)_update:', pfx='.PHONY: $(OS)_install $(OS)_update') //
+              'sudo apt update'//'sudo apt install -u `cat apt.txt`')
+             )
 
     def init_apt(self):
         self.d.apt = File('apt.txt')
@@ -252,9 +340,25 @@ class pyModule(dirModule):
         super().__init__(V)
 
 
+class rsFile(File):
+    def __init__(self, V, ext='.rs', comment='//'):
+        super().__init__(V, ext)
+
+
 class rsModule(dirModule):
     def __init__(self, V=None):
         super().__init__(V)
+        self.init_rust()
+
+    def init_rust(self):
+        self.init_cargo()
+        self.d.src.main = rsFile('main')
+        self.d.src // self.d.src.main
+        self.d.src.main // 'fn main() {}'
+
+    def init_giti(self):
+        super().init_giti()
+        self.d.giti // '' // '/target/' // '/Cargo.lock'
 
     def init_apt(self):
         super().init_apt()
@@ -264,3 +368,36 @@ class rsModule(dirModule):
         super().init_readme()
         self.d.readme.rust = S('### Rust', pfx='')
         self.d.readme // self.d.readme.rust
+
+    def init_mk(self):
+        super().init_mk()
+        self.d.mk.tool //\
+            f'{"CARGO":<7} = $(shell which cargo)' //\
+            f'{"RUSTC":<7} = $(shell which rustc)'
+        self.d.mk.all.body //\
+            '$(CARGO) run'
+        self.d.mk.install //\
+            '$(CARGO) build'
+
+    def init_vscode_extensions(self):
+        super().init_vscode_extensions()
+        self.d.vscode.extensions //\
+            '"bungcip.better-toml",' //\
+            '"rust-lang.rust",'
+
+    def init_cargo(self):
+        self.d.cargo = File('Cargo', ext='.toml')
+        self.d // self.d.cargo
+        #
+        self.d.cargo.package = Section('package')
+        self.d.cargo //\
+            (self.d.cargo.package //
+             '[package]' //
+             f'{"name":<7} = "{self:l}"' //
+             f'{"version":<7} = "0.0.1"' //
+             f'{"authors":<7} = ["{self.AUTHOR} <{self.EMAIL}>"]' //
+             f'{"edition":<7} = "2018"')
+        #
+        self.d.cargo.dependencies = Section('dependencies')
+        self.d.cargo //\
+            (self.d.cargo.dependencies//'[dependencies]')
