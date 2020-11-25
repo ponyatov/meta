@@ -18,7 +18,7 @@ if not re.findall(f'{mod}.py', F):
             F)
         F = re.sub(
             r'#M',
-            f'\n{mod}: $(PY) $(S)\n\t$(MAKE) pep\n\t$(PY) {mod}.py\n#M',
+            f'\n{mod}: $(PY) $(S)\n\t$(PY) {mod}.py\n#M',
             F)
         W.write(F)
 

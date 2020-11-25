@@ -11,7 +11,6 @@ PEP = $(CWD)/bin/autopep8
 S += metaL.py
 S += bully.py
 S += ./do
-S += ruts.py
 S += flOwS.py
 #S
 
@@ -23,12 +22,7 @@ bully: $(PY) $(S)
 	$(MAKE) pep
 	$(PY) bully.py
 
-ruts: $(PY) $(S)
-	$(MAKE) pep
-	$(PY) ruts.py
-
 flOwS: $(PY) $(S)
-	$(MAKE) pep
 	$(PY) flOwS.py
 #M
 
