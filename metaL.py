@@ -99,19 +99,26 @@ class S(Primitive):
 
     def file(self, to, depth=0):
         ret = ''
+        #
         if self.pfx != None:
             ret += f'{to.tab*depth}{self.pfx}\n'
+        #
         if self.begin != None:
             ret += f'{to.tab*depth}{self.value}'
+        #
         if self.inline:
             for j in self.nest:
-                ret += f' {j.value}'
+                ret += f'{j.value}'
         else:
             ret += '\n'
             for j in self.nest:
                 ret += j.file(to, depth+1)
+        #
         if self.end:
-            ret += f'{to.tab*depth}{self.end}\n'
+            if self.inline:
+                ret += f'{self.end}'
+            else:
+                ret += f'{to.tab*depth}{self.end}\n'
         return ret
 
 
@@ -221,10 +228,12 @@ class dirModule(Module):
                     (S('"sequence": [') //
                      '"workbench.action.files.saveAll",' //
                      (S('{"command": "workbench.action.terminal.sendSequence","args": {"text":', '}}]') //
-                        f'"\\u000D clear ; {cmd} \\u000D"')))
+                        (S(f'"\\u000D','\\u000D"\n',inline=True)//\
+                        self.d.vscode.settings.f12))))
+        self.d.vscode.settings.f12 = S('clear;make')
         self.d.vscode.settings.multi //\
             (S('"multiCommand.commands": [', '],') //
-             multi('f12', 'make'))
+             multi('f12', self.d.vscode.settings.f12))
         #
         self.d.vscode.settings.watcher = Section('watcher')
         self.d.vscode.settings // self.d.vscode.settings.watcher

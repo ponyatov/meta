@@ -17,7 +17,7 @@ RUSTC   = $(shell which rustc)
 # / <section:tool>
 # \ <section:all>
 .PHONY: all
-all: 
+all:
 	$(CARGO) run
 # / <section:all>
 # \ <section:install>
