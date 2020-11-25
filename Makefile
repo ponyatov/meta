@@ -12,6 +12,7 @@ S += metaL.py
 S += bully.py
 S += ./do
 S += ruts.py
+S += flOwS.py
 #S
 
 .PHONY: pep
@@ -25,6 +26,10 @@ bully: $(PY) $(S)
 ruts: $(PY) $(S)
 	$(MAKE) pep
 	$(PY) ruts.py
+
+flOwS: $(PY) $(S)
+	$(MAKE) pep
+	$(PY) flOwS.py
 #M
 
 $(PY) $(PIP):

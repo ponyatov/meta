@@ -5,7 +5,7 @@
             "sequence": [
                 "workbench.action.files.saveAll",
                 {"command": "workbench.action.terminal.sendSequence","args": {"text": 
-                    "\u000D clear ; make ruts \u000D"
+                    "\u000D clear ; make flOwS \u000D"
                 }}
             ]
         },

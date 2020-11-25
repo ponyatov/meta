@@ -8,7 +8,7 @@ class thisModule(dirModule):
 
 
 mod = thisModule()
-mod.TITLE = 'ruts'
+mod.TITLE = 'flOwS'
 mod.ABOUT = """
 ### Rust CS196 FA20
 

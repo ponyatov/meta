@@ -22,6 +22,8 @@ class Object:
     def __init__(self, V):
         self.type = self.__class__.__name__.lower()
         self.value = V
+        self.slot = {}
+        self.nest = []
         #
         self.synq()
 
@@ -43,6 +45,11 @@ class Object:
     def sync(self):
         print(self.head(prefix='sync: '))
 
+    def __floordiv__(self, that):
+        assert isinstance(that, Object)
+        self.nest.append(that)
+        self.synq()
+
 
 class IO(Object):
     pass
@@ -62,9 +69,29 @@ class Dir(IO):
             pass
         super().sync()
 
+    def __floordiv__(self, that):
+        assert isinstance(that, File)
+        that.path = f'{self.path}/{that.value}'
+        return super().__floordiv__(that)
+
 
 class File(IO):
-    pass
+
+    def __init__(self, V, ext='', tab=' '*4, comment='#'):
+        super().__init__(f'{V}{ext}')
+        self.ext = ext
+        self.tab = tab
+        self.comment = comment
+        self.commend = ''
+
+    def sync(self):
+        with open(self.path, 'w') as W:
+            W.write(self.head())
+
+
+class mkFile(File):
+    def __init__(self, V='Makefile', ext='', tab='\t', comment='#'):
+        super().__init__(V, ext, tab, comment)
 
 
 class Module(Object):
@@ -79,6 +106,19 @@ class dirModule(Module):
             V = V.split('.')[0]
         super().__init__(V)
         self.d = Dir(f'{self}')
+        self.init_mk()
+        self.init_apt()
+        self.init_giti()
+
+    def init_mk(self):
+        self.d.mk = mkFile()
+        self.d // self.d.mk
+
+    def init_apt(self):
+        pass
+
+    def init_giti(self):
+        pass
 
 
 class pyModule(dirModule):
