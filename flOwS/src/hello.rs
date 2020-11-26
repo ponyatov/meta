@@ -1,3 +1,25 @@
+enum Option<T> {
+    Some(T),
+    None,
+}
+
+use std::fmt;
+
+impl std::fmt::Display for Option<f32> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+fn inc(x: f32) -> Option<f32> {
+    if x > 0. {
+        Option::Some(x + 1.)
+    } else {
+        Option::None
+    }
+}
+
 pub fn hello() {
-    println!("Hello");
+    let pi = 3.14;
+    println!("Hello {} {}", inc(pi), inc(-pi));
 }
