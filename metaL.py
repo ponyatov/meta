@@ -410,7 +410,12 @@ class rsModule(dirModule):
         self.d.src.main = rsFile('main')
         self.d.src // self.d.src.main
         self.d.src.main.main = \
-            (rsFn('main') // 'hello::hello();')
+            (rsFn('main') //\
+            'println!("args: {:?}",env::args_os());'//\
+             'hello::hello();'
+             )
+        self.d.src.main.top //\
+            'use std::env;'
         self.d.src.main.top //\
             'mod hello;'
         self.d.src.main.bot //\
