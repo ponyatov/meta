@@ -25,4 +25,8 @@ fn inc(x: f32) -> Option<f32> {
 pub fn hello() {
     let pi = 3.14;
     println!("Hello {} {}", inc(pi), inc(-pi));
+    let arr = [1, 2, 3, 4, 5];
+    for i in &arr {
+        println!("{}", i)
+    }
 }

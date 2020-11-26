@@ -446,6 +446,7 @@ class rsModule(dirModule):
 * [Rust CS196 FA20](https://www.youtube.com/playlist?list=PLddc343N7YqhSPMjlCJa1gRDt4CzjiMYZ)
     * [Welcome to 196! - CS196 FA20](https://www.youtube.com/watch?v=J__JvfNuknU&list=PLddc343N7YqhSPMjlCJa1gRDt4CzjiMYZ&index=1&t=795s)
     * [Rust 1 - Lecture 17 - CS196 FA20](https://www.youtube.com/watch?v=ac7AOtkQMx4)
+    * [Rust 2 - Lecture 18 - CS196 FA20](https://www.youtube.com/watch?v=-SKih0Bu7l4)
 '''
         self.d.readme // self.d.readme.rust
 
@@ -502,7 +503,8 @@ class rsModule(dirModule):
         self.d.cargo.dependencies = Section('dependencies')
         self.d.cargo //\
             (self.d.cargo.dependencies //
-             '[dependencies]')
+             '[dependencies]' //
+             'lazy_static = ""')
 
 
 class iniFile(File):

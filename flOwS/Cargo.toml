@@ -7,4 +7,5 @@ authors   = ["Dmitry Ponyatov <dponyatov@gmail.com>"]
 edition   = "2018"
 # \ <section:dependencies>
 [dependencies]
+lazy_static = ""
 # / <section:dependencies>
