@@ -1,3 +1,11 @@
+
+type Command = fn() -> ();
+
+struct WORD {
+    _cfa: &'static Command,
+    _immed: bool
+}
+
 // #[macro_use]
 // extern crate lazy_static;
 use lazy_static::lazy_static;
@@ -12,6 +20,14 @@ lazy_static! {
 
 use std::collections::HashMap;
 
+// global vocabulary
+lazy_static! {
+    static ref W: Mutex<HashMap<&'static str, WORD>> = Mutex::new({
+        let m = HashMap::new();
+        m
+    });
+}
+
 // bytecode opcodes
 lazy_static! {
     static ref OP: HashMap<&'static str, u8> = {
@@ -20,14 +36,6 @@ lazy_static! {
         m.insert("bye", 0xFF);
         m
     };
-}
-
-// global vocabulary
-lazy_static! {
-    static ref W: Mutex<HashMap<&'static str, u32>> = Mutex::new({
-        let m = HashMap::new();
-        m
-    });
 }
 
 // FORTH shell entry point
