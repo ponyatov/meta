@@ -1,9 +1,8 @@
-
-type Command = fn() -> ();
+type Command = fn(); // -> ();
 
 struct WORD {
     _cfa: &'static Command,
-    _immed: bool
+    _immed: bool,
 }
 
 // #[macro_use]
@@ -42,7 +41,7 @@ lazy_static! {
 pub fn forth() {
     println!("FORTH");
     println!("nop: {}", OP.get(&"nop").unwrap());
-    println!("jmp: {}", OP.get(&"jmp").unwrap());
+    // println!("jmp: {}", OP.get(&"jmp").unwrap());
     println!("bye: {}", OP.get(&"bye").unwrap());
     interpret();
 }
