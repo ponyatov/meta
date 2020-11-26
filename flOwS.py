@@ -22,5 +22,7 @@ mod.ABOUT = """
     * binary pattern matching
     * realtime message scheduling
 """
+mod.d.src.main.top // 'mod forth;'
+mod.d.src.main.main // 'forth::forth();'
 
 sync()

@@ -7,7 +7,10 @@ use std::fmt;
 
 impl std::fmt::Display for Option<f32> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
+        match self {
+            Option::Some(x) => write!(f, "{}", x),
+            Option::None => write!(f, "<none>"),
+        }
     }
 }
 
