@@ -273,18 +273,18 @@ class dirModule(Module):
         self.d.mk.var = Section('var')
         self.d.mk //\
             (self.d.mk.var //
-             f'{"MODULE":<7} = $(notdir $(CURDIR))' //
-             f'{"OS":<7} = $(shell uname -s)' //
-             f'{"MACHINE":<7} = $(shell uname -m)')
+             f'{"MODULE":<9} = $(notdir $(CURDIR))' //
+             f'{"OS":<9} = $(shell uname -s)' //
+             f'{"MACHINE":<9} = $(shell uname -m)')
         #
         self.d.mk.dir = Section('dir')
         self.d.mk //\
             (self.d.mk.dir //
-             f'{"CWD":<7} = $(CURDIR)' //
-             f'{"DOC":<7} = $(CWD)/doc' //
-             f'{"BIN":<7} = $(CWD)/bin' //
-             f'{"SRC":<7} = $(CWD)/src' //
-             f'{"TMP":<7} = $(CWD)/tmp'
+             f'{"CWD":<9} = $(CURDIR)' //
+             f'{"DOC":<9} = $(CWD)/doc' //
+             f'{"BIN":<9} = $(CWD)/bin' //
+             f'{"SRC":<9} = $(CWD)/src' //
+             f'{"TMP":<9} = $(CWD)/tmp'
              )
         #
         self.d.doc = Dir('doc')
@@ -299,7 +299,7 @@ class dirModule(Module):
         self.d.mk.tool = Section('tool')
         self.d.mk //\
             (self.d.mk.tool //
-             f'{"WGET":<7} = wget -c')
+             f'{"WGET":<9} = wget -c')
         #
         self.d.mk.obj = Section('obj')
         self.d.mk // self.d.mk.obj
@@ -314,10 +314,11 @@ class dirModule(Module):
              (self.d.mk.all.body)
              )
         #
+        self.d.mk.inst = Section('inst')
         self.d.mk.install = Section('install')
         self.d.mk.update = Section('update')
         self.d.mk //\
-            (Section('install') //
+            (self.d.mk.inst //
              (S('install: $(OS)_install', pfx='.PHONY: install') //
               self.d.mk.install) //
              (S('update: $(OS)_update', pfx='.PHONY: update') //
@@ -376,14 +377,22 @@ class rsFile(File):
     def __init__(self, V, ext='.rs', comment='//'):
         super().__init__(V, ext)
 
-class Meta(Object): pass
-class Fn(Meta): pass
+
+class Meta(Object):
+    pass
+
+
+class Fn(Meta):
+    pass
+
+
 class rsFn(Fn):
     def file(self, to):
-        ret = S(f'fn {self.value}() {{','}')
+        ret = S(f'fn {self.value}() {{', '}')
         for j in self.nest:
             ret // j
         return ret.file(to)
+
 
 class rsModule(dirModule):
     def __init__(self, V=None):
@@ -404,7 +413,7 @@ class rsModule(dirModule):
 
     def init_apt(self):
         super().init_apt()
-        self.d.apt // 'cargo rustc'
+        self.d.apt // 'curl'
 
     def init_readme(self):
         super().init_readme()
@@ -413,13 +422,24 @@ class rsModule(dirModule):
 
     def init_mk(self):
         super().init_mk()
+        self.d.mk.dir //\
+            f'{"CARGOBIN":<9} = $(HOME)/.cargo/bin'
         self.d.mk.tool //\
-            f'{"CARGO":<7} = $(shell which cargo)' //\
-            f'{"RUSTC":<7} = $(shell which rustc)'
+            f'{"RUSTUP":<9} = $(CARGOBIN)/rustup' //\
+            f'{"CARGO":<9} = $(CARGOBIN)/cargo' //\
+            f'{"RUSTC":<9} = $(CARGOBIN)/rustc'
         self.d.mk.all.body //\
             '$(CARGO) run'
         self.d.mk.install //\
-            '$(CARGO) build'
+            '$(MAKE)   $(RUSTUP)' //\
+            '$(RUSTUP) update' //\
+            '$(RUSTUP) component add rustfmt' //\
+            '$(CARGO)  build'
+        self.d.mk.update //\
+            '$(RUSTUP) update'
+        self.d.mk.inst //\
+            (S('$(RUSTUP) $(CARGO) $(RUSTC):') //
+             "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh")
 
     def init_vscode_settings(self):
         super().init_vscode_settings()
@@ -442,10 +462,10 @@ class rsModule(dirModule):
         self.d.cargo //\
             (self.d.cargo.package //
              '[package]' //
-             f'{"name":<7} = "{self:l}"' //
-             f'{"version":<7} = "0.0.1"' //
-             f'{"authors":<7} = ["{self.AUTHOR} <{self.EMAIL}>"]' //
-             f'{"edition":<7} = "2018"')
+             f'{"name":<9} = "{self:l}"' //
+             f'{"version":<9} = "0.0.1"' //
+             f'{"authors":<9} = ["{self.AUTHOR} <{self.EMAIL}>"]' //
+             f'{"edition":<9} = "2018"')
         #
         self.d.cargo.dependencies = Section('dependencies')
         self.d.cargo //\

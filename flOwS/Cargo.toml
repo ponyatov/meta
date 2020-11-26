@@ -1,9 +1,9 @@
 # \ <section:package>
 [package]
-name    = "flows"
-version = "0.0.1"
-authors = ["Dmitry Ponyatov <dponyatov@gmail.com>"]
-edition = "2018"
+name      = "flows"
+version   = "0.0.1"
+authors   = ["Dmitry Ponyatov <dponyatov@gmail.com>"]
+edition   = "2018"
 # / <section:package>
 # \ <section:dependencies>
 [dependencies]

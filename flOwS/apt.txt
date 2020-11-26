@@ -1,2 +1,2 @@
 git make wget
-cargo rustc
+curl
