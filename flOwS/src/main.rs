@@ -5,9 +5,11 @@ mod forth;
 // / <section:top>
 // \ <section:bot>
 fn main() {
-    let argv = env::args_os();
+    //
+    let argv: Vec<String> = env::args().collect();
     let argc = argv.len();
-    println!("argc:[{:?}] argv:[{:?}]",argc,argv);
+    for i in 0..argc { println!("argv[{}] = {:?}",i,argv[i]); }
+    //
     hello::hello();
     forth::forth();
 }

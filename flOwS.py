@@ -25,4 +25,8 @@ mod.ABOUT = """
 mod.d.src.main.top // 'mod forth;'
 mod.d.src.main.main // 'forth::forth();'
 
+mod.d.ini = iniFile(mod)
+mod.d // mod.d.ini
+mod.d.ini // f'# {mod} startup script'
+
 sync()

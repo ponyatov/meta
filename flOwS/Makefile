@@ -19,8 +19,8 @@ RUSTC     = $(CARGOBIN)/rustc
 # / <section:tool>
 # \ <section:all>
 .PHONY: all
-all:
-	$(CARGO) run
+all: $(S) $(MODULE).ini
+	$(CARGO) run $(MODULE).ini
 # / <section:all>
 # \ <section:inst>
 .PHONY: install

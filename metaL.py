@@ -107,8 +107,9 @@ class S(Primitive):
             ret += f'{to.tab*depth}{self.value}'
         #
         if self.inline:
-            for j in self.nest:
-                ret += f'{j.value}'
+            ret += ' '.join(map(lambda j:
+                                re.sub(r'[\r\n\t]+', '', j.file(to)),
+                                self.nest))
         else:
             ret += '\n'
             for j in self.nest:
@@ -182,9 +183,10 @@ class File(IO):
 
     def sync(self):
         if super().sync():
-            with open(self.path, 'w') as W:
-                for j in self.nest:
-                    W.write(j.file(self))
+            if hasattr(self, 'path'):
+                with open(self.path, 'w') as W:
+                    for j in self.nest:
+                        W.write(j.file(self))
 
 
 class Module(Object):
@@ -311,7 +313,7 @@ class dirModule(Module):
         self.d.mk // self.d.mk.obj
         #
         self.d.mk.all = Section('all')
-        self.d.mk.all.target = S()
+        self.d.mk.all.target = S(' ', inline=True)
         self.d.mk.all.body = S()
         self.d.mk //\
             (self.d.mk.all //
@@ -411,9 +413,11 @@ class rsModule(dirModule):
         self.d.src // self.d.src.main
         self.d.src.main.main = \
             (rsFn('main') //
-             'let argv = env::args_os();' //
+             '//' //
+             'let argv: Vec<String> = env::args().collect();' //
              'let argc = argv.len();' //
-             'println!("argc:[{:?}] argv:[{:?}]",argc,argv);' //
+             'for i in 0..argc { println!("argv[{}] = {:?}",i,argv[i]); }' //
+             '//' //
              'hello::hello();'
              )
         self.d.src.main.top //\
@@ -453,8 +457,9 @@ class rsModule(dirModule):
             f'{"RUSTUP":<9} = $(CARGOBIN)/rustup' //\
             f'{"CARGO":<9} = $(CARGOBIN)/cargo' //\
             f'{"RUSTC":<9} = $(CARGOBIN)/rustc'
+        self.d.mk.all.target // '$(S)' // '$(MODULE).ini'
         self.d.mk.all.body //\
-            '$(CARGO) run'
+            '$(CARGO) run $(MODULE).ini'
         self.d.mk.install //\
             '$(MAKE)   $(RUSTUP)' //\
             '$(RUSTUP) update' //\
@@ -498,3 +503,8 @@ class rsModule(dirModule):
         self.d.cargo //\
             (self.d.cargo.dependencies //
              '[dependencies]')
+
+
+class iniFile(File):
+    def __init__(self, V, ext='.ini', comment='#'):
+        super().__init__(V, ext, comment)
