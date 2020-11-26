@@ -69,7 +69,7 @@ class Object:
         ret = self.synced
         if not self.synced:
             self.synced = True
-            print(self.head(prefix='sync: '))
+            # print(self.head(prefix='sync: '))
         return self.synced
 
     def __floordiv__(self, that):
@@ -79,8 +79,8 @@ class Object:
         self.nest.append(that)
         return self.synq()
 
-    def file(self, to):
-        return self.dump(tab=to.tab)
+    def file(self, to, depth=0):
+        return self.dump(depth, tab=to.tab)
 
 
 class Primitive(Object):
@@ -165,14 +165,20 @@ class Dir(IO):
 
 class File(IO):
 
-    def __init__(self, V, ext='', tab=' '*4, comment='#'):
+    def __init__(self, V, ext='', comment='#', tab=' '*4):
         super().__init__(f'{V}{ext}')
+        #
         self.ext = ext
         self.tab = tab
         self.comment = comment
         self.commend = ''
         if self.comment == '/*':
             self.commend = ' */'
+        #
+        self.top = Section('top')
+        self.mid = Section('mid')
+        self.bot = Section('bot')
+        self // self.top // self.mid // self.bot
 
     def sync(self):
         if super().sync():
@@ -182,8 +188,8 @@ class File(IO):
 
 
 class mkFile(File):
-    def __init__(self, V='Makefile', ext='', tab='\t', comment='#'):
-        super().__init__(V, ext, tab, comment)
+    def __init__(self, V='Makefile', ext='', comment='#',  tab='\t'):
+        super().__init__(V, ext, comment, tab)
 
 
 class jsonFile(File):
@@ -387,11 +393,11 @@ class Fn(Meta):
 
 
 class rsFn(Fn):
-    def file(self, to):
-        ret = S(f'fn {self.value}() {{', '}')
+    def file(self, to, depth=0):
+        ret = S(f'{to.tab*depth}fn {self.value}() {{', '}')
         for j in self.nest:
             ret // j
-        return ret.file(to)
+        return ret.file(to, depth)
 
 
 class rsModule(dirModule):
@@ -403,9 +409,12 @@ class rsModule(dirModule):
         self.init_cargo()
         self.d.src.main = rsFile('main')
         self.d.src // self.d.src.main
-        self.d.src.main //\
-            'mod hello;' //\
+        self.d.src.main.main = \
             (rsFn('main') // 'hello::hello();')
+        self.d.src.main.top //\
+            'mod hello;'
+        self.d.src.main.bot //\
+            self.d.src.main.main
 
     def init_giti(self):
         super().init_giti()
