@@ -410,8 +410,10 @@ class rsModule(dirModule):
         self.d.src.main = rsFile('main')
         self.d.src // self.d.src.main
         self.d.src.main.main = \
-            (rsFn('main') //\
-            'println!("args: {:?}",env::args_os());'//\
+            (rsFn('main') //
+             'let argv = env::args_os();' //
+             'let argc = argv.len();' //
+             'println!("argc:[{:?}] argv:[{:?}]",argc,argv);' //
              'hello::hello();'
              )
         self.d.src.main.top //\

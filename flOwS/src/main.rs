@@ -5,7 +5,9 @@ mod forth;
 // / <section:top>
 // \ <section:bot>
 fn main() {
-    println!("args: {:?}",env::args_os());
+    let argv = env::args_os();
+    let argc = argv.len();
+    println!("argc:[{:?}] argv:[{:?}]",argc,argv);
     hello::hello();
     forth::forth();
 }

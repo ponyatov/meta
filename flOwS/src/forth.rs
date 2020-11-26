@@ -3,19 +3,19 @@ pub fn forth() {
     interpret();
 }
 
-static mut stack: i32 = 0x12345678;
+// let mut stack: i32 = 0x12345678;
 
 fn interpret() {
-    loop {
+    // loop {
         bl();
         q();
-    }
+    // }
 }
 
 fn bl() {
-    stack = 0x20; // space
+    // stack = 0x20; // space
 }
 
 fn q() {
-    println!("stack: {:?}", stack);
+    // println!("stack: {:?}", stack);
 }
