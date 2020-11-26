@@ -435,7 +435,6 @@ class rsModule(dirModule):
         super().init_readme()
         self.d.readme.rust = S('### Rust', pfx='')
         self.d.readme.rust // '''
-* [Rust: просто о сложном | Meta/conf](https://www.youtube.com/watch?v=n3kyvMVck_M)
 * [aleksey.kladov](https://www.youtube.com/playlist?list=PLlb7e2G7aSpTfhiECYNI2EZ1uAluUqE_e)
     * [1. Введение (Программирование на Rust)](https://www.youtube.com/watch?v=Oy_VYovfWyo)
     * [2. Время жизни, ADT. Программирование на Rust (весна 2019)](https://www.youtube.com/watch?v=WV-m7xRlXMs)
@@ -490,9 +489,12 @@ class rsModule(dirModule):
              '[package]' //
              f'{"name":<9} = "{self:l}"' //
              f'{"version":<9} = "0.0.1"' //
-             f'{"authors":<9} = ["{self.AUTHOR} <{self.EMAIL}>"]' //
-             f'{"edition":<9} = "2018"')
+             f'{"authors":<9} = ["{self.AUTHOR} <{self.EMAIL}>"]')
+        #
+        self.d.cargo //\
+            f'{"edition":<9} = "2018"'
         #
         self.d.cargo.dependencies = Section('dependencies')
         self.d.cargo //\
-            (self.d.cargo.dependencies//'[dependencies]')
+            (self.d.cargo.dependencies //
+             '[dependencies]')

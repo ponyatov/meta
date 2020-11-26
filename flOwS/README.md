@@ -19,7 +19,6 @@ github: https://github.com/ponyatov/flOwS
 
 ### Rust
     
-* [Rust: просто о сложном | Meta/conf](https://www.youtube.com/watch?v=n3kyvMVck_M)
 * [aleksey.kladov](https://www.youtube.com/playlist?list=PLlb7e2G7aSpTfhiECYNI2EZ1uAluUqE_e)
     * [1. Введение (Программирование на Rust)](https://www.youtube.com/watch?v=Oy_VYovfWyo)
     * [2. Время жизни, ADT. Программирование на Rust (весна 2019)](https://www.youtube.com/watch?v=WV-m7xRlXMs)
