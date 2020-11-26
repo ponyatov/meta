@@ -187,6 +187,10 @@ class File(IO):
                     W.write(j.file(self))
 
 
+class Module(Object):
+    pass
+
+
 class mkFile(File):
     def __init__(self, V='Makefile', ext='', comment='#',  tab='\t'):
         super().__init__(V, ext, comment, tab)
@@ -194,11 +198,7 @@ class mkFile(File):
 
 class jsonFile(File):
     def __init__(self, V, ext='.json', comment='/*'):
-        super().__init__(V, ext, comment=comment)
-
-
-class Module(Object):
-    pass
+        super().__init__(V, ext, comment)
 
 
 class dirModule(Module):
@@ -381,7 +381,7 @@ class pyModule(dirModule):
 
 class rsFile(File):
     def __init__(self, V, ext='.rs', comment='//'):
-        super().__init__(V, ext)
+        super().__init__(V, ext, comment)
 
 
 class Meta(Object):
