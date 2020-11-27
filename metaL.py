@@ -161,7 +161,7 @@ class IO(Object):
 class Dir(IO):
 
     def __init__(self, V):
-        assert re.match(r'\.?[a-z]+', V)
+        assert re.match(r'\.?[a-zA-Z]+', V)
         super().__init__(V)
         self.path = V
 
@@ -432,7 +432,7 @@ class dirModule(Module):
         self.d.readme = File('README.md')
         self.d // self.d.readme
         self.d.readme //\
-            f'#  {self.MODULE}' //\
+            f'#  `{self}`' //\
             f'## {self.TITLE}' //\
             '' //\
             f'(c) {self.AUTHOR} <<{self.EMAIL}>> {self.YEAR} {self.LICENSE}' //\
@@ -829,3 +829,19 @@ class exModule(dirModule):
 
     def init_elixir(self):
         pass
+
+    def init_apt(self):
+        super().init_apt()
+        self.d.apt // 'erlang elixir'
+
+    def init_giti(self):
+        super().init_giti()
+        self.d.giti.mid //\
+            '/_build/'//\
+            '/cover/'//\
+            '/deps/'//\
+            'erl_crash.dump'
+
+    def init_vscode_extensions(self):
+        super().init_vscode_extensions()
+        self.d.vscode.extensions // '"jakebecker.elixir-ls",'
