@@ -1,36 +1,35 @@
 {
+    /* \ <section:multi> */
     "multiCommand.commands": [
-        {
-            "command": "multiCommand.f11",
-            "sequence": [
-                "workbench.action.files.saveAll",
-                {"command": "workbench.action.terminal.sendSequence","args": {"text": 
-                    "\u000D make pep \u000D"
-                }}
-            ]
-        },
         {
             "command": "multiCommand.f12",
             "sequence": [
                 "workbench.action.files.saveAll",
-                {"command": "workbench.action.terminal.sendSequence","args": {"text": 
-                    "\u000D clear ; make bully \u000D"
-                }}
-            ]
+                {"command": "workbench.action.terminal.sendSequence","args": {"text":
+                    "\u000Dclear;make\u000D"
+                }}]
         },
     ],
+    /* / <section:multi> */
     "files.watcherExclude": {
+        /* \ <section:watcher> */
         "**/__pycache__/**": true,
         "**/bin/**": true, "**/include/**": true, "**/lib*/**": true,
         "**/share/**": true, "**/*.pyc": true, "**/pyvenv.cfg": true,
+        /* / <section:watcher> */
     },
     "files.exclude": {
+        /* \ <section:exclude> */
         "**/__pycache__/**": true,
         "**/bin/**": true, "**/include/**": true, "**/lib*/**": true,
         "**/share/**": true, "**/*.pyc": true, "**/pyvenv.cfg": true,
+        /* / <section:exclude> */
     },
     "files.associations": {
-        "./do": "python",
+        /* \ <section:assoc> */
+        "**/*.py": "python",
+        "requirements.*": "config",
+        /* / <section:assoc> */
     },
-    "editor.tabSize": 4,
+    "editor.tabSize": 4
 }

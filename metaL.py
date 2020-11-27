@@ -4,6 +4,8 @@ import os
 import sys
 import re
 
+import xxhash
+
 import queue
 
 synqueue = queue.Queue(maxsize=0x1111)
@@ -28,6 +30,8 @@ class Object:
         self.synced = False
         self.synq()
 
+    ######################################################################
+
     def __format__(self, spec):
         if spec == '':
             return f'{self.value}'
@@ -35,8 +39,7 @@ class Object:
             return f'{self.value.lower()}'
         raise TypeError(spec)
 
-    def keys(self):
-        return sorted(self.slot.keys())
+    ######################################################################
 
     def test(self): return self.dump(test=True)
 
@@ -56,6 +59,8 @@ class Object:
     def pad(self, depth, tab):
         return f'\n{tab*depth}'
 
+    ######################################################################
+
     def synq(self):
         def s(): synqueue.put(self, block=False)
         try:
@@ -72,6 +77,14 @@ class Object:
             # print(self.head(prefix='sync: '))
         return self.synced
 
+    def file(self, to, depth=0):
+        return self.dump(depth, tab=to.tab)
+
+    ######################################################################
+
+    def keys(self):
+        return sorted(self.slot.keys())
+
     def __floordiv__(self, that):
         if isinstance(that, str):
             that = S(that)
@@ -79,9 +92,8 @@ class Object:
         self.nest.append(that)
         return self.synq()
 
-    def file(self, to, depth=0):
-        return self.dump(depth, tab=to.tab)
 
+#######################################################################################
 
 class Primitive(Object):
     pass
@@ -134,6 +146,8 @@ class Section(S):
                 ret += j.file(to, depth+0)
             ret += s('/')
         return ret
+
+#######################################################################################
 
 
 class IO(Object):
@@ -188,6 +202,8 @@ class File(IO):
                     for j in self.nest:
                         W.write(j.file(self))
 
+#######################################################################################
+
 
 class Module(Object):
     pass
@@ -202,6 +218,8 @@ class jsonFile(File):
     def __init__(self, V, ext='.json', comment='/*'):
         super().__init__(V, ext, comment)
 
+#######################################################################################
+
 
 class dirModule(Module):
     def __init__(self, V=None):
@@ -215,8 +233,27 @@ class dirModule(Module):
         self.init_apt()
         self.init_giti()
         self.init_meta()
+        self.init_config()
         self.init_readme()
         self.init_vscode()
+
+    def init_config(self):
+        self.config = Section('config')
+        self.config.SECRET_KEY = \
+            xxhash.xxh128(self.head(test=True)).hexdigest()
+        self.config.HOST = '127.0.0.1'
+
+        def scale(hash32):
+            A = float(1024)
+            B = float(0xBFFF)
+            # 0          -> A
+            # 0xFFFFFFFF -> B
+            port = int(A + ((B - A) / 0xFFFFFFFF) * hash32)
+            assert A <= port and port <= B
+            return port
+        self.config.PORT = scale(xxhash.xxh32(
+            self.head(test=True)).intdigest())
+        assert self.config.PORT in range(1024, 0xBFFF)
 
     def init_vscode(self):
         self.d.vscode = Dir('.vscode')
@@ -272,6 +309,7 @@ class dirModule(Module):
              (S('{', '}') //
                 (S('"recommendations": [', ']') //
                  '"stkb.rewrap",' //
+                 '"tabnine.tabnine-vscode",' //
                  self.d.vscode.extensions)))
 
     def init_mk(self):
@@ -312,15 +350,16 @@ class dirModule(Module):
         self.d.mk.obj = Section('obj')
         self.d.mk // self.d.mk.obj
         #
+        self.d.mk.alls = Section('all')
+        self.d.mk // self.d.mk.alls
         self.d.mk.all = Section('all')
+        self.d.mk.alls // self.d.mk.all
         self.d.mk.all.target = S(' ', inline=True)
         self.d.mk.all.body = S()
-        self.d.mk //\
-            (self.d.mk.all //
-             (S('all:', pfx='.PHONY: all', inline=True) //
-              self.d.mk.all.target) //
-             (self.d.mk.all.body)
-             )
+        self.d.mk.all //\
+            (S('all:', pfx='.PHONY: all', inline=True) //
+             self.d.mk.all.target) //\
+            (self.d.mk.all.body)
         #
         self.d.mk.inst = Section('inst')
         self.d.mk.install = Section('install')
@@ -343,7 +382,7 @@ class dirModule(Module):
     def init_giti(self):
         self.d.giti = File('.gitignore')
         self.d // self.d.giti
-        self.d.giti // '*~' // '*.swp' // '*.log'
+        self.d.giti.top // '*~' // '*.swp' // '*.log'
 
     def init_meta(self):
         self.MODULE = self.TITLE = self
@@ -375,10 +414,169 @@ class dirModule(Module):
             f'{self.ABOUT}' //\
             f'github: {self.GITHUB}/{self.MODULE}'
 
+#######################################################################################
+
+
+class pyFile(File):
+    def __init__(self, V, ext='.py', comment='#'):
+        super().__init__(V, ext, comment)
+
 
 class pyModule(dirModule):
     def __init__(self, V=None):
         super().__init__(V)
+        self.init_py()
+
+    def init_py(self):
+        self.init_reqs()
+        self.d.py = pyFile(self)
+        self.d // self.d.py
+
+    def init_config(self):
+        super().init_config()
+        self.d.config = pyFile('config')
+        self.d // self.d.config
+        self.d.config //\
+            f'{"SECRET_KEY":<11} = "{self.config.SECRET_KEY}"' //\
+            f'{"HOST":<11} = "{self.config.HOST}"' //\
+            f'{"PORT":<11} = {self.config.PORT}'
+
+    def init_mk(self):
+        super().init_mk()
+        self.d.mk.tool //\
+            f'{"PY":<9} = $(BIN)/python3' //\
+            f'{"PIP":<9} = $(BIN)/pip3' //\
+            f'{"PEP":<9} = $(BIN)/autopep8' //\
+            f'{"PYT":<9} = $(BIN)/pytest'
+        #
+        self.d.mk.obj // 'S += $(MODULE).py'
+        #
+        self.d.mk.all.target // '$(PY) $(MODULE).py'
+        self.d.mk.all.body // '$^'
+        #
+        self.d.mk.alls //\
+            (S('pep: $(PEP) $(S)', pfx='.PHONY: pep') //
+                '$(PEP) --in-place $(S)')
+        #
+        self.d.mk.pyinst = Section('pyinst')
+        self.d.mk.inst // self.d.mk.pyinst
+        self.d.mk.install //\
+            '$(MAKE) $(PIP)' //\
+            '$(MAKE) update'
+        self.d.mk.update //\
+            '$(PIP) install -U pip autopep8' //\
+            '$(PIP) install -U -r requirements.pip'
+        self.d.mk.pyinst //\
+            (S('$(PY) $(PIP):')//'python3 -m venv .' // '$(MAKE) update')
+
+    def init_reqs(self):
+        self.d.reqs = File('requirements.pip')
+        self.d // self.d.reqs
+
+    def init_giti(self):
+        super().init_giti()
+        self.d.giti.mid //\
+            '/bin' //\
+            '/lib' //\
+            '/lib64' //\
+            '/share' //\
+            '/pyvenv.cfg'
+
+    def init_vscode_settings(self):
+        super().init_vscode_settings()
+        pyfiles = re.sub(r'^\s+', '', '''
+        "**/__pycache__/**": true,
+        "**/bin/**": true, "**/include/**": true, "**/lib*/**": true,
+        "**/share/**": true, "**/*.pyc": true, "**/pyvenv.cfg": true,''')
+        self.d.vscode.settings.watcher // pyfiles
+        self.d.vscode.settings.exclude // pyfiles
+        self.d.vscode.settings.assoc //\
+            '"**/*.py": "python",' // '"requirements.*": "config",'
+
+#######################################################################################
+
+
+class djModule(pyModule):
+    def __init__(self, V=None):
+        super().__init__(V)
+        self.init_dj()
+
+    def init_dj(self):
+        self.d.dj = Dir('dj')
+        self.d // self.d.dj
+        self.init_dj_settings()
+        self.init_dj_urls()
+        self.init_dj_views()
+
+    def init_dj_urls(self):
+        self.d.dj.urls = pyFile('urls')
+        self.d.dj // self.d.dj.urls
+        self.d.dj.urls.top //\
+            'from django.contrib import admin' //\
+            'from django.urls import path' //\
+            'from dj import views'
+        self.d.dj.urls.mid //\
+            (S('urlpatterns = [', ']') //
+             "path('', views.index, name='index')," //
+             "path('admin/', admin.site.urls, name='admin'),")
+
+    def init_dj_views(self):
+        self.d.dj.views = pyFile('views')
+        self.d.dj // self.d.dj.views
+        self.d.dj.views.mid //\
+            (S('def index(request):') //
+             "template = loader.get_template('index.html')" //
+             (S('context = {', '}')//'') //
+             "return HttpResponse(template.render(context, request))")
+
+    def init_dj_settings(self):
+        self.d.dj.settings = pyFile('settings')
+        self.d.dj // self.d.dj.settings
+        self.d.dj.settings //\
+            'import config' //\
+            '' //\
+            f'{"SECRET_KEY":<13} = config.SECRET_KEY' //\
+            f'{"DEBUG":<13} = True' //\
+            f'{"ROOT_URLCONF":<13} = "dj.urls"'
+        #
+        self.d.dj.settings // '' //\
+            "from pathlib import Path" //\
+            "BASE_DIR = Path(__file__).resolve(strict=True).parent.parent"
+        #
+        apps = S('INSTALLED_APPS = [', ']')
+        self.d.dj.settings // ''//apps
+        for i in ['admin', 'auth', 'contenttypes', 'messages']:
+            apps // f"'django.contrib.{i}',"
+        #
+        self.d.dj.settings // '' //\
+            (S('TEMPLATES = [', ']') //
+             (S('{', '}') //
+              "'BACKEND': 'django.template.backends.django.DjangoTemplates'," //
+              "'DIRS': [BASE_DIR/'templates'], # req for /template resolve" //
+              "'APP_DIRS': True, # req for admin/login.html template" //
+              ''))
+
+    def init_apt(self):
+        super().init_apt()
+        self.d.apt // 'sqlite3 sqlitebrowser'
+
+    def init_reqs(self):
+        super().init_reqs()
+        self.d.reqs // 'django'
+
+    def init_py(self):
+        super().init_py()
+        self.d.py // f'''
+import config
+import os, sys
+def main():
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dj.settings')
+    from django.core.management import execute_from_command_line
+    execute_from_command_line(sys.argv+['runserver',f'{{config.HOST}}:{{config.PORT}}'])
+if __name__ == '__main__':
+    main()'''
+
+#######################################################################################
 
 
 class rsFile(File):
@@ -429,7 +627,7 @@ class rsModule(dirModule):
 
     def init_giti(self):
         super().init_giti()
-        self.d.giti // '' // '/target/' // '/Cargo.lock'
+        self.d.giti.mid // '/target/' // '/Cargo.lock'
 
     def init_apt(self):
         super().init_apt()

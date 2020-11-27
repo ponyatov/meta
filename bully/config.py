@@ -1,0 +1,3 @@
+SECRET_KEY  = "bb4bd2360dbf98b1723a98b213614970"
+HOST        = "127.0.0.1"
+PORT        = 35472

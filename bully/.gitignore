@@ -1,0 +1,12 @@
+# \ <section:top>
+*~
+*.swp
+*.log
+# / <section:top>
+# \ <section:mid>
+/bin
+/lib
+/lib64
+/share
+/pyvenv.cfg
+# / <section:mid>

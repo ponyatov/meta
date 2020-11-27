@@ -22,10 +22,13 @@ use std::collections::HashMap;
 // global vocabulary
 lazy_static! {
     static ref W: Mutex<HashMap<&'static str, WORD>> = Mutex::new({
-        let m = HashMap::new();
+        let mut m = HashMap::new();
+        m.insert("NOP",WORD::new(nop));
         m
     });
 }
+
+fn nop(){}
 
 // bytecode opcodes
 lazy_static! {

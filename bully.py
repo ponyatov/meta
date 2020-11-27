@@ -1,8 +1,10 @@
+
 from metaL import *
 
 
-class thisModule(pyModule):
-    pass
+class thisModule(djModule):
+    def __init__(self, V=None):
+        super().__init__(V)
 
 
 mod = thisModule()

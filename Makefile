@@ -12,20 +12,21 @@ S += metaL.py
 S += bully.py
 S += ./do
 S += flOwS.py
+S += bully.py
 #S
 
 .PHONY: pep
 pep: $(PEP) $(S)
 	$(PEP) --in-place $(S)
 
-bully: $(PY) $(S)
-	$(MAKE) pep
-	$(PY) bully.py
-
 flOwS: $(PY) $(S)
 	$(PY) flOwS.py
+
+bully: $(PY) $(S)
+	$(PY) bully.py
 #M
 
 $(PY) $(PIP):
 	python3 -m venv .
 	$(PIP) install -U pip autopep8
+	$(PIP) install -U -r requirements.pip
