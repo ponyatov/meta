@@ -13,6 +13,7 @@ S += bully.py
 S += ./do
 S += flOwS.py
 S += bully.py
+S += SCADA.py
 #S
 
 .PHONY: pep
@@ -24,6 +25,9 @@ flOwS: $(PY) $(S)
 
 bully: $(PY) $(S)
 	$(PY) bully.py
+
+SCADA: $(PY) $(S)
+	$(PY) SCADA.py
 #M
 
 $(PY) $(PIP):

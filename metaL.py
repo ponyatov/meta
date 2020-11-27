@@ -819,3 +819,13 @@ class rsModule(dirModule):
 class iniFile(File):
     def __init__(self, V, ext='.ini', comment='#'):
         super().__init__(V, ext, comment)
+
+#######################################################################################
+
+class exModule(dirModule):
+    def __init__(self, V=None):
+        super().__init__(V)
+        self.init_elixir()
+
+    def init_elixir(self):
+        pass

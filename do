@@ -27,7 +27,7 @@ with open('.vscode/settings.json') as R:
     F = R.read()
 with open('.vscode/settings.json', 'w') as W:
     F = re.sub(
-        r'(\\u000D) clear ; make[^\\]*(\\u000D)',
+        r'(\\u000D clear ; make)[^\\]*(\\u000D)',
         f'\\1 {mod} \\2',
         F)
     W.write(F)
