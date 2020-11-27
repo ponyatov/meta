@@ -8,5 +8,9 @@
 /lib
 /lib64
 /share
+__pycache__
 /pyvenv.cfg
 # / <section:mid>
+# \ <section:bot>
+/bully.sqlite*
+# / <section:bot>

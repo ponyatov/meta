@@ -1,2 +1,3 @@
 git make wget
 sqlite3 sqlitebrowser
+libsqlite3-mod-spatialite libspatialite7 gdal-bin

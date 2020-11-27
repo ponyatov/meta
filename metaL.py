@@ -258,8 +258,28 @@ class dirModule(Module):
     def init_vscode(self):
         self.d.vscode = Dir('.vscode')
         self.d // self.d.vscode
+        self.init_vscode_tasks()
         self.init_vscode_settings()
         self.init_vscode_extensions()
+
+    def init_vscode_tasks(self):
+        self.d.vscode.tasks = jsonFile('tasks')
+        self.d.vscode // self.d.vscode.tasks
+        self.d.vscode.tasks.tasks = Section('tasks')
+
+        def task(it):
+            return (S('{', '},') //
+                    f'"label":          "make: {it}",' //
+                    f'"type":           "shell",' //
+                    f'"command":        "make {it}",' //
+                    f'"problemMatcher": []')
+        self.d.vscode.tasks.tasks //\
+            task('install') // task('update')
+        self.d.vscode.tasks //\
+            (S("{", "}") //
+             '"version": "2.0.0",' //
+             (S('"tasks": [', ']') //
+              self.d.vscode.tasks.tasks))
 
     def init_vscode_settings(self):
         self.d.vscode.settings = Section('settings')
@@ -480,6 +500,7 @@ class pyModule(dirModule):
             '/lib' //\
             '/lib64' //\
             '/share' //\
+            '__pycache__'//\
             '/pyvenv.cfg'
 
     def init_vscode_settings(self):
@@ -535,9 +556,9 @@ class djModule(pyModule):
         self.d.dj.settings //\
             'import config' //\
             '' //\
-            f'{"SECRET_KEY":<13} = config.SECRET_KEY' //\
-            f'{"DEBUG":<13} = True' //\
-            f'{"ROOT_URLCONF":<13} = "dj.urls"'
+            f'{"SECRET_KEY":<12} = config.SECRET_KEY' //\
+            f'{"DEBUG":<12} = True' //\
+            f'{"ROOT_URLCONF":<12} = "dj.urls"'
         #
         self.d.dj.settings // '' //\
             "from pathlib import Path" //\
@@ -545,24 +566,47 @@ class djModule(pyModule):
         #
         apps = S('INSTALLED_APPS = [', ']')
         self.d.dj.settings // ''//apps
-        for i in ['admin', 'auth', 'contenttypes', 'messages']:
+        for i in ['admin', 'auth', 'contenttypes', 'sessions', 'messages']:
             apps // f"'django.contrib.{i}',"
         #
         self.d.dj.settings // '' //\
             (S('TEMPLATES = [', ']') //
              (S('{', '}') //
-              "'BACKEND': 'django.template.backends.django.DjangoTemplates'," //
-              "'DIRS': [BASE_DIR/'templates'], # req for /template resolve" //
-              "'APP_DIRS': True, # req for admin/login.html template" //
-              ''))
+              "'BACKEND'  : 'django.template.backends.django.DjangoTemplates'," //
+              "'DIRS'     : [BASE_DIR/'templates'], # req for /template resolve" //
+              "'APP_DIRS' : True, # req for admin/login.html template" //
+              (S("'OPTIONS'  : {", "}") //
+               (S("'context_processors': [", "]") //
+                "'django.template.context_processors.request'," //
+                "'django.contrib.auth.context_processors.auth'," //
+                "'django.contrib.messages.context_processors.messages',"
+                ))))
+        #
+        self.d.dj.settings // '' //\
+            (S("MIDDLEWARE = [", "]") //
+             "'django.contrib.sessions.middleware.SessionMiddleware'," //
+             "'django.contrib.auth.middleware.AuthenticationMiddleware'," //
+             "'django.contrib.messages.middleware.MessageMiddleware',")
+        #
+        self.d.dj.settings // '' //\
+            (S("DATABASES = {", "}") //
+             (S("'default': {", "}") //
+              "'ENGINE': 'django.contrib.gis.db.backends.spatialite'," //
+              f"'NAME': BASE_DIR/'{self}.sqlite3',"))
 
     def init_apt(self):
         super().init_apt()
-        self.d.apt // 'sqlite3 sqlitebrowser'
+        self.d.apt //\
+            'sqlite3 sqlitebrowser' //\
+            'libsqlite3-mod-spatialite libspatialite7 gdal-bin'
 
     def init_reqs(self):
         super().init_reqs()
         self.d.reqs // 'django'
+
+    def init_giti(self):
+        super().init_giti()
+        self.d.giti.bot // f'/{self}.sqlite*'
 
     def init_py(self):
         super().init_py()
