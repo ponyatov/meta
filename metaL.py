@@ -92,8 +92,12 @@ class Object:
         self.nest.append(that)
         return self.synq()
 
+    ######################################################################
+
+    def drop(self): self.nest.pop(); return self
 
 #######################################################################################
+
 
 class Primitive(Object):
     pass
@@ -229,11 +233,11 @@ class dirModule(Module):
             V = V.split('.')[0]
         super().__init__(V)
         self.d = Dir(f'{self}')
+        self.init_config()
         self.init_mk()
         self.init_apt()
         self.init_giti()
         self.init_meta()
-        self.init_config()
         self.init_readme()
         self.init_vscode()
 
@@ -262,19 +266,20 @@ class dirModule(Module):
         self.init_vscode_settings()
         self.init_vscode_extensions()
 
+    def vscode_task(self, it):
+        return (S('{', '},') //
+                f'"label":          "make: {it}",' //
+                f'"type":           "shell",' //
+                f'"command":        "make {it}",' //
+                f'"problemMatcher": []')
+
     def init_vscode_tasks(self):
         self.d.vscode.tasks = jsonFile('tasks')
         self.d.vscode // self.d.vscode.tasks
         self.d.vscode.tasks.tasks = Section('tasks')
-
-        def task(it):
-            return (S('{', '},') //
-                    f'"label":          "make: {it}",' //
-                    f'"type":           "shell",' //
-                    f'"command":        "make {it}",' //
-                    f'"problemMatcher": []')
         self.d.vscode.tasks.tasks //\
-            task('install') // task('update')
+            self.vscode_task('install') //\
+            self.vscode_task('update')
         self.d.vscode.tasks //\
             (S("{", "}") //
              '"version": "2.0.0",' //
@@ -500,7 +505,7 @@ class pyModule(dirModule):
             '/lib' //\
             '/lib64' //\
             '/share' //\
-            '__pycache__'//\
+            '__pycache__' //\
             '/pyvenv.cfg'
 
     def init_vscode_settings(self):
@@ -516,11 +521,41 @@ class pyModule(dirModule):
 
 #######################################################################################
 
+class cssFile(File):
+    def __init__(self, V,ext='.css', comment='/*'):
+        super().__init__(V, ext, comment)
 
-class djModule(pyModule):
+class webModule(pyModule):
+    def __init__(self, V=None):
+        super().__init__(V)
+        self.init_static()
+        self.init_templates()
+
+    def init_static(self):
+        self.d.static = Dir('static')
+        self.d // self.d.static
+        self.d.static // File('.gitignore')
+        #
+        self.d.static.css = cssFile('css')
+        self.d.static // self.d.static.css
+
+    def init_templates(self):
+        self.d.templates = Dir('templates')
+        self.d // self.d.templates
+        self.d.templates // File('.gitignore')
+
+
+class djModule(webModule):
     def __init__(self, V=None):
         super().__init__(V)
         self.init_dj()
+
+    def init_vscode_tasks(self):
+        super().init_vscode_tasks()
+        self.d.vscode.tasks.tasks //\
+            self.vscode_task('migrate') //\
+            self.vscode_task('makemigrations') //\
+            self.vscode_task('createsuperuser')
 
     def init_dj(self):
         self.d.dj = Dir('dj')
@@ -544,8 +579,13 @@ class djModule(pyModule):
     def init_dj_views(self):
         self.d.dj.views = pyFile('views')
         self.d.dj // self.d.dj.views
+        self.d.dj.views.top //\
+            'from django.http import HttpResponse, HttpResponseRedirect' //\
+            'from django.template import loader'
         self.d.dj.views.mid //\
             (S('def index(request):') //
+             (S('if not request.user.is_authenticated:') //
+              "return HttpResponseRedirect(f'/admin/login/?next={request.path}')") //
              "template = loader.get_template('index.html')" //
              (S('context = {', '}')//'') //
              "return HttpResponse(template.render(context, request))")
@@ -565,9 +605,11 @@ class djModule(pyModule):
             "BASE_DIR = Path(__file__).resolve(strict=True).parent.parent"
         #
         apps = S('INSTALLED_APPS = [', ']')
-        self.d.dj.settings // ''//apps
-        for i in ['admin', 'auth', 'contenttypes', 'sessions', 'messages']:
+        self.d.dj.settings // '' // apps
+        for i in ['admin', 'auth', 'contenttypes', 'sessions', 'messages', 'staticfiles']:
             apps // f"'django.contrib.{i}',"
+        self.d.dj.settings // '' //\
+            "STATIC_URL = '/static/'"
         #
         self.d.dj.settings // '' //\
             (S('TEMPLATES = [', ']') //
@@ -593,6 +635,9 @@ class djModule(pyModule):
              (S("'default': {", "}") //
               "'ENGINE': 'django.contrib.gis.db.backends.spatialite'," //
               f"'NAME': BASE_DIR/'{self}.sqlite3',"))
+        #
+        self.d.dj.settings // '' //\
+            "LANGUAGE_CODE = 'ru-ru'"
 
     def init_apt(self):
         super().init_apt()
@@ -608,6 +653,28 @@ class djModule(pyModule):
         super().init_giti()
         self.d.giti.bot // f'/{self}.sqlite*'
 
+    def init_mk(self):
+        super().init_mk()
+        self.d.mk.all.body.drop() //\
+            f'$^ runserver {self.config.HOST}:{self.config.PORT}'
+        self.d.mk.alls //\
+            (S('migrate: $(PY) $(MODULE).py', pfx='.PHONY: migrate') //
+             f'rm {self}.sqlite3' //
+             '$^ $@')
+        self.d.mk.alls //\
+            (S('makemigrations: $(PY) $(MODULE).py', pfx='.PHONY: makemigrations') //
+             '$^ $@')
+        self.d.mk.alls //\
+            (S('createsuperuser: $(PY) $(MODULE).py', pfx='.PHONY: createsuperuser') //
+             (S('$^ $@ \\') //
+              '--username dponyatov \\' //
+              '--email dponyatov@gmail.com'))
+        #
+        self.d.mk.install //\
+            '$(MAKE) migrate' //\
+            '$(MAKE) createsuperuser'
+        #
+
     def init_py(self):
         super().init_py()
         self.d.py // f'''
@@ -616,7 +683,7 @@ import os, sys
 def main():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dj.settings')
     from django.core.management import execute_from_command_line
-    execute_from_command_line(sys.argv+['runserver',f'{{config.HOST}}:{{config.PORT}}'])
+    execute_from_command_line(sys.argv)
 if __name__ == '__main__':
     main()'''
 

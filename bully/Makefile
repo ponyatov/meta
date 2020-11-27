@@ -24,11 +24,23 @@ S += $(MODULE).py
 # \ <section:all>
 .PHONY: all
 all: $(PY) $(MODULE).py
-	$^
+	$^ runserver 127.0.0.1:35472
 # / <section:all>
 .PHONY: pep
 pep: $(PEP) $(S)
 	$(PEP) --in-place $(S)
+.PHONY: migrate
+migrate: $(PY) $(MODULE).py
+	rm bully.sqlite3
+	$^ $@
+.PHONY: makemigrations
+makemigrations: $(PY) $(MODULE).py
+	$^ $@
+.PHONY: createsuperuser
+createsuperuser: $(PY) $(MODULE).py
+	$^ $@ \
+		--username dponyatov \
+		--email dponyatov@gmail.com
 # / <section:all>
 # \ <section:inst>
 .PHONY: install
@@ -36,6 +48,8 @@ install: $(OS)_install
 	# \ <section:install>
 	$(MAKE) $(PIP)
 	$(MAKE) update
+	$(MAKE) migrate
+	$(MAKE) createsuperuser
 	# / <section:install>
 .PHONY: update
 update: $(OS)_update

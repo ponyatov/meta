@@ -14,6 +14,24 @@
             "command":        "make update",
             "problemMatcher": []
         },
+        {
+            "label":          "make: migrate",
+            "type":           "shell",
+            "command":        "make migrate",
+            "problemMatcher": []
+        },
+        {
+            "label":          "make: makemigrations",
+            "type":           "shell",
+            "command":        "make makemigrations",
+            "problemMatcher": []
+        },
+        {
+            "label":          "make: createsuperuser",
+            "type":           "shell",
+            "command":        "make createsuperuser",
+            "problemMatcher": []
+        },
         /* / <section:tasks> */
     ]
 }

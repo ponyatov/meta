@@ -13,7 +13,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
 ]
+
+STATIC_URL = '/static/'
 
 TEMPLATES = [
     {
@@ -42,3 +45,5 @@ DATABASES = {
         'NAME': BASE_DIR/'bully.sqlite3',
     }
 }
+
+LANGUAGE_CODE = 'ru-ru'
