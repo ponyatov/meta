@@ -248,6 +248,7 @@ class dirModule(Module):
         self.config.SECRET_KEY = \
             xxhash.xxh128(self.head(test=True)).hexdigest()
         self.config.HOST = '127.0.0.1'
+        self.config.HOST_tuple = '{%s}' % re.sub(r'\.', r',', self.config.HOST)
 
         def scale(hash32):
             A = float(1024)

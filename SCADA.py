@@ -110,17 +110,22 @@ router //\
      'plug :match' //
      'plug :dispatch' //
      '' //
+     'defp local, do: "<pre>#{inspect :calendar.local_time()}</pre><hr>"' //
+     '' //
      (S('get "/" do', 'end') //
-      'conn |> send_resp(200,"I`m index")') //
+      'conn |> send_resp(200,"#{local()} I`m index")') //
      '' //
      (S('match _ do', 'end') //
-      'conn |> send_resp(404,"Undefined")') //
+      'conn |> send_resp(404,"#{local()} Undefined")') //
      '')
+
 
 mod.d.src.ex.start //\
     f'IO.puts "\\nhttp://{mod.config.HOST}:{mod.config.PORT}\\n"' //\
     (S('children = [', ']') //
-     f'#Plug.Adapters.Cowboy.child_spec(:http, Web.Router, [], port: {mod.config.PORT})'
+     (S('{', '}') //
+      'Plug.Cowboy, scheme: :http, plug: Web.Router,' //
+      f'options: [ip: {mod.config.HOST_tuple}, port: {mod.config.PORT}]')
      ) //\
     'Supervisor.start_link(children, strategy: :one_for_one)'
 
