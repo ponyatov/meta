@@ -113,10 +113,10 @@ router //\
      'defp local, do: "<pre>#{inspect :calendar.local_time()}</pre><hr>"' //
      '' //
      (S('get "/" do', 'end') //
-      'conn |> send_resp(200,"#{local()} I`m index")') //
+      'conn |> send_resp(:ok,"#{local()} I`m index")') //
      '' //
      (S('match _ do', 'end') //
-      'conn |> send_resp(404,"#{local()} Undefined")') //
+      'conn |> send_resp(:not_found,"#{local()} Undefined")') //
      '')
 
 
