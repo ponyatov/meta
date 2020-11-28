@@ -78,6 +78,7 @@ wёbдизайнеров на мобильные устройства, и на �
 
 mod.d.mix.deps //\
     '{:cowboy, "~> 2.8"},' //\
+    '{:plug, "~> 1.11"},' //\
     '{:ecto, "~> 3.5"},' //\
     '{:json, "~> 1.3"},' //\
     '{:earmark, "~> 1.4"},' //\
@@ -88,5 +89,17 @@ mod.d.mix.deps //\
     '{:exsync, "~> 0.2.4", only: :dev},'
 
 webModule.mixin(mod)
+
+mod.d.src.web = Dir('web')
+mod.d.src // mod.d.src.web
+
+router = exFile('router')
+mod.d.src.web // router
+
+mod.d.mk.obj // f'S += src/web/{router}'
+
+router //\
+    (S('defmodule Web.Router do', 'end') //
+     'use Plug.Router')
 
 sync()

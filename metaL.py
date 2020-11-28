@@ -939,6 +939,7 @@ class exModule(dirModule):
         self.d.mk.obj // 'S += mix.exs'
         self.d.mk.all.target // '$(S)'
         self.d.mk.all.body //\
+            '$(MIX) format $(S)' //\
             '$(IEX) -S $(MIX)' //\
             '$(MAKE) $@'
         self.d.mk.merge // 'MERGE += .formatter.exs mix.exs'
@@ -996,6 +997,8 @@ class exModule(dirModule):
 
 #### Web
 
-* `Cowboy`
+* `Plug` composable web module specification
+    * [Building a Static Site in Elixir](https://www.youtube.com/watch?v=CK78zms9IHM)
+* `Cowboy` pure web server
     * [AC1: Making a site with just the Cowboy web server](https://www.youtube.com/watch?v=LDLzqLl0aeU)
 '''
