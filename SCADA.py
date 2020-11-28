@@ -11,9 +11,10 @@ mod = thisModule()
 mod.TITLE = 'SCADA-like system in Erlang/Elixir'
 mod.ABOUT = """
 * (I)IoT-focused
+* minimal `cowboy`-based web interface
 """
 
-# mod.d.readme // 
+# mod.d.readme //
 '''
 
 ***
@@ -75,7 +76,6 @@ wёbдизайнеров на мобильные устройства, и на �
 имеет более приятный синтаксис, и веб-фреймворк Phoenix (по мотивам Rails).
 '''
 
-
 mod.d.mix.deps //\
     '{:cowboy, "~> 2.8"},' //\
     '{:ecto, "~> 3.5"},' //\
@@ -86,5 +86,7 @@ mod.d.mix.deps //\
     '#{:mqtt, "~> 0.3.3"},' //\
     '#{:modbus, "~> 0.3.7"},' //\
     '{:exsync, "~> 0.2.4", only: :dev},'
+
+webModule.mixin(mod)
 
 sync()

@@ -389,13 +389,13 @@ class dirModule(Module):
              self.d.mk.all.target) //\
             (self.d.mk.all.body)
         #
-        self.d.mk.inst = Section('inst')
         self.d.mk.install = Section('install')
+        self.d.mk.install.body = Section('install')
         self.d.mk.update = Section('update')
         self.d.mk //\
-            (self.d.mk.inst //
+            (self.d.mk.install //
              (S('install: $(OS)_install', pfx='.PHONY: install') //
-              self.d.mk.install) //
+              self.d.mk.install.body) //
              (S('update: $(OS)_update', pfx='.PHONY: update') //
               self.d.mk.update) //
              (S('$(OS)_install $(OS)_update:', pfx='.PHONY: $(OS)_install $(OS)_update') //
@@ -546,15 +546,44 @@ class cssFile(File):
 
 
 class webModule(pyModule):
+
     def __init__(self, V=None):
         super().__init__(V)
-        self.init_static()
-        self.init_templates()
+        webModule.mixin(self)
+
+    def mixin(self):
+        webModule.init_static(self)
+        webModule.init_templates(self)
+        webModule.mixin_mk(self)
+
+    def mixin_mk(self):
+        self.d.mk.js = Section('js')
+        self.d.mk.install // self.d.mk.js
+        self.d.mk.install.body //\
+            '$(MAKE) js'
+        self.d.mk.js //\
+            f'{"JQUERY_VER":<13}  = 3.5.1' //\
+            f'{"BOOTSTRAP_VER":<13}  = 3.4.1'
+        self.d.mk.js //\
+            (S('js:', pfx='.PHONY: js'))
+        self.d.mk.js //\
+            (S('js: static/jquery.js \\', pfx='.PHONY: js') //
+                "static/bootstrap.css static/bootstrap.js") //\
+            (S("static/jquery.js:") //
+                "$(WGET) -O $@ https://code.jquery.com/jquery-$(JQUERY_VER).min.js")
+        self.d.mk.js //\
+            (S("static/bootstrap.css:") //
+                "$(WGET) -O $@ https://bootswatch.com/3/darkly/bootstrap.min.css") //\
+            (S("static/bootstrap.js:") //
+                "$(WGET) -O $@ https://maxcdn.bootstrapcdn.com/bootstrap/$(BOOTSTRAP_VER)/js/bootstrap.min.js")
+        self.d.mk.merge // 'MERGE += static templates'
 
     def init_static(self):
         self.d.static = Dir('static')
         self.d // self.d.static
-        self.d.static // File('.gitignore')
+        self.d.static.giti = File('.gitignore')
+        self.d.static // self.d.static.giti
+        self.d.static.giti // 'jquery.js' // 'bootstrap.*'
         #
         self.d.static.css = cssFile('css')
         self.d.static // self.d.static.css
@@ -954,7 +983,10 @@ class exModule(dirModule):
   * https://github.com/kvakvs/E4VM
   * [Erlang on Microcontrollers: The Research Continues - Dmytro Lytovchenko - EUC17](https://www.youtube.com/watch?v=6NUPormxgw8)
 
-[Elixir School](https://elixirschool.com/ru/) — главный ресурс для тех, кто хочет изучить язык программирования Elixir.
+* [Elixir - как без усилий поднять тысячи процессов на одной машине](https://www.youtube.com/watch?v=jmW5ngfYmdc)
+* [Elixir School /ru/](https://elixirschool.com/ru/) — главный ресурс для тех, кто хочет изучить язык программирования Elixir.
+
+#### Books
 
 * Саша Юрич [Elixir в действии](https://dmkpress.com/catalog/computer/programming/functional/978-5-97060-773-2/)
 * Чезарини Ф. [Программирование в Erlang](https://dmkpress.com/catalog/computer/programming/functional/978-5-94074-617-1/)
