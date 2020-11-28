@@ -76,9 +76,12 @@ wёbдизайнеров на мобильные устройства, и на �
 имеет более приятный синтаксис, и веб-фреймворк Phoenix (по мотивам Rails).
 '''
 
-mod.d.mix.deps //\
+mix = mod.d.mix
+
+mix.deps //\
     '{:cowboy, "~> 2.8"},' //\
     '{:plug, "~> 1.11"},' //\
+    '{:plug_cowboy, "~> 2.4"},' //\
     '{:ecto, "~> 3.5"},' //\
     '{:json, "~> 1.3"},' //\
     '{:earmark, "~> 1.4"},' //\
@@ -90,6 +93,8 @@ mod.d.mix.deps //\
 
 webModule.mixin(mod)
 
+mix.application.extra // ':cowboy, :plug,'
+
 mod.d.src.web = Dir('web')
 mod.d.src // mod.d.src.web
 
@@ -100,6 +105,23 @@ mod.d.mk.obj // f'S += src/web/{router}'
 
 router //\
     (S('defmodule Web.Router do', 'end') //
-     'use Plug.Router')
+     'use Plug.Router' //
+     '' //
+     'plug :match' //
+     'plug :dispatch' //
+     '' //
+     (S('get "/" do', 'end') //
+      'conn |> send_resp(200,"I`m index")') //
+     '' //
+     (S('match _ do', 'end') //
+      'conn |> send_resp(404,"Undefined")') //
+     '')
+
+mod.d.src.ex.start //\
+    f'IO.puts "\\nhttp://{mod.config.HOST}:{mod.config.PORT}\\n"' //\
+    (S('children = [', ']') //
+     f'#Plug.Adapters.Cowboy.child_spec(:http, Web.Router, [], port: {mod.config.PORT})'
+     ) //\
+    'Supervisor.start_link(children, strategy: :one_for_one)'
 
 sync()

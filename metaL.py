@@ -871,13 +871,13 @@ class iniFile(File):
 
 
 class exFile(File):
-    def __init__(self, V, ext='.ex', comment='#'):
-        super().__init__(V, ext, comment)
+    def __init__(self, V, ext='.ex', comment='#', tab='  '):
+        super().__init__(V, ext, comment, tab)
 
 
 class exsFile(File):
-    def __init__(self, V, ext='.exs', comment='#'):
-        super().__init__(V, ext, comment)
+    def __init__(self, V, ext='.exs', comment='#', tab='  '):
+        super().__init__(V, ext, comment, tab)
 
 
 class exModule(dirModule):
@@ -899,8 +899,15 @@ class exModule(dirModule):
     def init_elixir_ex(self):
         self.d.src.ex = exFile(f'{self:l}')
         self.d.src // self.d.src.ex
+        self.d.src.ex.module = Section('module')
+        self.d.src.ex.start = Section('start')
+        self.d.src.ex.module //\
+            'use Application' //\
+            (S('def start(_type, _args) do', 'end', pfx='') //
+             self.d.src.ex.start)
         self.d.src.ex //\
             (S(f'defmodule {self:m} do', 'end') //
+             self.d.src.ex.module //
              (S('def hello do', 'end')//':world'))
         self.d.mk.obj // f'S += src/{self:l}.ex'
 
@@ -910,26 +917,33 @@ class exModule(dirModule):
         project = \
             (S('def project do', 'end', pfx='') //
              (S('[', ']') //
-              f'app: :{self:l},' //
-              'version: "0.0.1",' //
-              'elixir: "~> 1.11",' //
-              'elixirc_paths: ["src"],' //
-              'start_permanent: Mix.env() == :prod,' //
-              'deps: deps()'))
-        application = \
-            (S('def application do', 'end', pfx='') //
+                f'app: :{self:l},' //
+                'version: "0.0.1",' //
+                'elixir: "~> 1.11",' //
+                'elixirc_paths: ["src"],' //
+                'start_permanent: Mix.env() == :prod,' //
+                'deps: deps()'))
+        #
+        self.d.mix.application = Section('application')
+        self.d.mix.application.extra = Section('extra') // ':logger,'
+        self.d.mix.application.mod = Section('mod') // f'mod: {{{self:m}, []}}'
+        self.d.mix.application //\
+            (S('def application do', 'end') //
              (S('[', ']') //
-              'extra_applications: [:logger]'))
+              (S('extra_applications: [', '],') //
+               self.d.mix.application.extra) //
+              self.d.mix.application.mod))
+        #
         self.d.mix.deps = Section('deps')
-        deps = \
-            (S('defp deps do', 'end', pfx='') //
-             (S('[', ']') //
-              self.d.mix.deps))
+        deps = (S('defp deps do', 'end', pfx='') //
+                (S('[', ']') //
+                 self.d.mix.deps))
+        #
         self.d.mix //\
             (S(f'defmodule {self:m}.MixProject do', 'end') //
              'use Mix.Project' //
              project //
-             application //
+             self.d.mix.application //
              deps //
              '')
 
@@ -939,8 +953,8 @@ class exModule(dirModule):
         self.d.mk.obj // 'S += mix.exs'
         self.d.mk.all.target // '$(S)'
         self.d.mk.all.body //\
-            '$(MIX) format $(S)' //\
-            '$(IEX) -S $(MIX)' //\
+            '$(MIX)  format $(S)' //\
+            '$(IEX)  -S $(MIX)' //\
             '$(MAKE) $@'
         self.d.mk.merge // 'MERGE += .formatter.exs mix.exs'
 
@@ -999,6 +1013,7 @@ class exModule(dirModule):
 
 * `Plug` composable web module specification
     * [Building a Static Site in Elixir](https://www.youtube.com/watch?v=CK78zms9IHM)
+    * [Elixir: Setup Plug and Cowboy - 004](https://www.youtube.com/watch?v=VxepM7_54dA)
 * `Cowboy` pure web server
     * [AC1: Making a site with just the Cowboy web server](https://www.youtube.com/watch?v=LDLzqLl0aeU)
 '''
