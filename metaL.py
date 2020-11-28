@@ -502,8 +502,8 @@ class pyModule(dirModule):
                 '$(PEP) --in-place $(S)')
         #
         self.d.mk.pyinst = Section('pyinst')
-        self.d.mk.inst // self.d.mk.pyinst
-        self.d.mk.install //\
+        self.d.mk.install // self.d.mk.pyinst
+        self.d.mk.install.body //\
             '$(MAKE) $(PIP)' //\
             '$(MAKE) update'
         self.d.mk.update //\
@@ -564,8 +564,6 @@ class webModule(pyModule):
         self.d.mk.js //\
             f'{"JQUERY_VER":<13}  = 3.5.1' //\
             f'{"BOOTSTRAP_VER":<13}  = 3.4.1'
-        self.d.mk.js //\
-            (S('js:', pfx='.PHONY: js'))
         self.d.mk.js //\
             (S('js: static/jquery.js \\', pfx='.PHONY: js') //
                 "static/bootstrap.css static/bootstrap.js") //\
@@ -719,7 +717,7 @@ class djModule(webModule):
               '--username dponyatov \\' //
               '--email dponyatov@gmail.com'))
         #
-        self.d.mk.install //\
+        self.d.mk.install.body //\
             '$(MAKE) migrate' //\
             '$(MAKE) createsuperuser'
         #

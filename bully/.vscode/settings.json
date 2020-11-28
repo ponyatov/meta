@@ -2,6 +2,14 @@
     /* \ <section:multi> */
     "multiCommand.commands": [
         {
+            "command": "multiCommand.f11",
+            "sequence": [
+                "workbench.action.files.saveAll",
+                {"command": "workbench.action.terminal.sendSequence","args": {"text":
+                    "\u000Dclear;make\u000D"
+                }}]
+        },
+        {
             "command": "multiCommand.f12",
             "sequence": [
                 "workbench.action.files.saveAll",

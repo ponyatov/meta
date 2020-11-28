@@ -23,7 +23,7 @@ S += $(MODULE).py
 # \ <section:all>
 # \ <section:all>
 .PHONY: all
-all: $(PY) $(MODULE).py
+all: $(PY) $(MODULE).py	
 	$^ runserver 127.0.0.1:35472
 # / <section:all>
 .PHONY: pep
@@ -42,7 +42,7 @@ createsuperuser: $(PY) $(MODULE).py
 		--username dponyatov \
 		--email dponyatov@gmail.com
 # / <section:all>
-# \ <section:inst>
+# \ <section:install>
 .PHONY: install
 install: $(OS)_install
 	# \ <section:install>
@@ -50,6 +50,7 @@ install: $(OS)_install
 	$(MAKE) update
 	$(MAKE) migrate
 	$(MAKE) createsuperuser
+	$(MAKE) js
 	# / <section:install>
 .PHONY: update
 update: $(OS)_update
@@ -66,4 +67,32 @@ $(PY) $(PIP):
 	python3 -m venv .
 	$(MAKE) update
 # / <section:pyinst>
-# / <section:inst>
+# \ <section:js>
+JQUERY_VER     = 3.5.1
+BOOTSTRAP_VER  = 3.4.1
+.PHONY: js
+js: static/jquery.js \
+	static/bootstrap.css static/bootstrap.js
+static/jquery.js:
+	$(WGET) -O $@ https://code.jquery.com/jquery-$(JQUERY_VER).min.js
+static/bootstrap.css:
+	$(WGET) -O $@ https://bootswatch.com/3/darkly/bootstrap.min.css
+static/bootstrap.js:
+	$(WGET) -O $@ https://maxcdn.bootstrapcdn.com/bootstrap/$(BOOTSTRAP_VER)/js/bootstrap.min.js
+# / <section:js>
+# / <section:install>
+# \ <section:merge>
+MERGE  = Makefile README.md apt.txt .gitignore .vscode $(S)
+MERGE += static templates
+# / <section:merge>
+.PHONY: main
+main:
+	git push -v
+	git checkout $@
+	git pull -v
+	git checkout shadow -- $(MERGE)
+.PHONY: shadow
+shadow:
+	git pull -v
+	git checkout $@
+	git pull -v
