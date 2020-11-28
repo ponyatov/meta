@@ -37,6 +37,8 @@ class Object:
             return f'{self.value}'
         if spec == 'l':
             return f'{self.value.lower()}'
+        if spec == 'm':
+            return f'{self.value.capitalize()}'
         raise TypeError(spec)
 
     ######################################################################
@@ -127,7 +129,7 @@ class S(Primitive):
                                 re.sub(r'[\r\n\t]+', '', j.file(to)),
                                 self.nest))
         else:
-            ret += '\n'
+            ret += '\n' if self.begin != None else ''
             for j in self.nest:
                 ret += j.file(to, depth+1)
         #
@@ -298,11 +300,12 @@ class dirModule(Module):
                     (S('"sequence": [') //
                      '"workbench.action.files.saveAll",' //
                      (S('{"command": "workbench.action.terminal.sendSequence","args": {"text":', '}}]') //
-                        (S(f'"\\u000D', '\\u000D"\n', inline=True) //
-                         self.d.vscode.settings.f12))))
+                        (S(f'"\\u000D', '\\u000D"\n', inline=True) // cmd))))
+        self.d.vscode.settings.f11 = S('clear;make')
         self.d.vscode.settings.f12 = S('clear;make')
         self.d.vscode.settings.multi //\
             (S('"multiCommand.commands": [', '],') //
+             multi('f11', self.d.vscode.settings.f11) //
              multi('f12', self.d.vscode.settings.f12))
         #
         self.d.vscode.settings.watcher = Section('watcher')
@@ -380,7 +383,7 @@ class dirModule(Module):
         self.d.mk.all = Section('all')
         self.d.mk.alls // self.d.mk.all
         self.d.mk.all.target = S(' ', inline=True)
-        self.d.mk.all.body = S()
+        self.d.mk.all.body = S()//''
         self.d.mk.all //\
             (S('all:', pfx='.PHONY: all', inline=True) //
              self.d.mk.all.target) //\
@@ -398,6 +401,21 @@ class dirModule(Module):
              (S('$(OS)_install $(OS)_update:', pfx='.PHONY: $(OS)_install $(OS)_update') //
               'sudo apt update'//'sudo apt install -u `cat apt.txt`')
              )
+        #
+        self.d.mk.merge = Section('merge')
+        self.d.mk // self.d.mk.merge //\
+            (S('main:', pfx='.PHONY: main') //
+             'git push -v' //
+             'git checkout $@' //
+             'git pull -v' //
+             'git checkout shadow -- $(MERGE)') //\
+            (S('shadow:', pfx='.PHONY: shadow') //
+             'git pull -v' //
+             'git checkout $@' //
+             'git pull -v')
+
+        self.d.mk.merge //\
+            'MERGE  = Makefile README.md apt.txt .gitignore .vscode $(S)'
 
     def init_apt(self):
         self.d.apt = File('apt.txt')
@@ -521,9 +539,11 @@ class pyModule(dirModule):
 
 #######################################################################################
 
+
 class cssFile(File):
-    def __init__(self, V,ext='.css', comment='/*'):
+    def __init__(self, V, ext='.css', comment='/*'):
         super().__init__(V, ext, comment)
+
 
 class webModule(pyModule):
     def __init__(self, V=None):
@@ -822,13 +842,79 @@ class iniFile(File):
 
 #######################################################################################
 
+
+class exFile(File):
+    def __init__(self, V, ext='.ex', comment='#'):
+        super().__init__(V, ext, comment)
+
+
+class exsFile(File):
+    def __init__(self, V, ext='.exs', comment='#'):
+        super().__init__(V, ext, comment)
+
+
 class exModule(dirModule):
     def __init__(self, V=None):
         super().__init__(V)
         self.init_elixir()
 
     def init_elixir(self):
-        pass
+        self.d.formatter = exsFile('.formatter')
+        self.d // self.d.formatter
+        self.d.formatter //\
+            (S('[', ']') //
+             'inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"]'
+             )
+        #
+        self.init_elixir_mix()
+        self.init_elixir_ex()
+
+    def init_elixir_ex(self):
+        self.d.src.ex = exFile(f'{self:l}')
+        self.d.src // self.d.src.ex
+        self.d.src.ex //\
+            (S(f'defmodule {self:m} do', 'end') //
+             (S('def hello do', 'end')//':world'))
+        self.d.mk.obj // f'S += src/{self:l}.ex'
+
+    def init_elixir_mix(self):
+        self.d.mix = exsFile('mix')
+        self.d // self.d.mix
+        project = \
+            (S('def project do', 'end', pfx='') //
+             (S('[', ']') //
+              f'app: :{self:l},' //
+              'version: "0.0.1",' //
+              'elixir: "~> 1.11",' //
+              'elixirc_paths: ["src"],' //
+              'start_permanent: Mix.env() == :prod,' //
+              'deps: deps()'))
+        application = \
+            (S('def application do', 'end', pfx='') //
+             (S('[', ']') //
+              'extra_applications: [:logger]'))
+        self.d.mix.deps = Section('deps')
+        deps = \
+            (S('defp deps do', 'end', pfx='') //
+             (S('[', ']') //
+              self.d.mix.deps))
+        self.d.mix //\
+            (S(f'defmodule {self:m}.MixProject do', 'end') //
+             'use Mix.Project' //
+             project //
+             application //
+             deps //
+             '')
+
+    def init_mk(self):
+        super().init_mk()
+        self.d.mk.tool // f'{"MIX":<9} = mix' // f'{"IEX":<9} = iex'
+        self.d.mk.obj // 'S += mix.exs'
+        self.d.mk.all.target // '$(S)'
+        self.d.mk.all.body //\
+            '$(IEX) -S $(MIX)' //\
+            '$(MAKE) $@'
+        self.d.mk.merge // 'MERGE += .formatter.exs mix.exs'
 
     def init_apt(self):
         super().init_apt()
@@ -837,11 +923,49 @@ class exModule(dirModule):
     def init_giti(self):
         super().init_giti()
         self.d.giti.mid //\
-            '/_build/'//\
-            '/cover/'//\
-            '/deps/'//\
-            'erl_crash.dump'
+            '/_build/' //\
+            '/cover/' //\
+            '/deps/' //\
+            'erl_crash.dump' //\
+            '/mix.lock'
+
+    def init_vscode_settings(self):
+        super().init_vscode_settings()
+        s = S() //\
+            '"**/_build/**": true, "**/.elixir_ls/**": true,' //\
+            '"**/deps/**": true,' //\
+            '"**/.formatter.exs": true, "**/mix.lock": true,'
+        self.d.vscode.settings.watcher // s
+        self.d.vscode.settings.exclude // s
+        self.d.vscode.settings.f12.value = 'System.stop'
 
     def init_vscode_extensions(self):
         super().init_vscode_extensions()
         self.d.vscode.extensions // '"jakebecker.elixir-ls",'
+
+    def init_readme(self):
+        super().init_readme()
+        self.d.readme.erlang = (S('\n\n### Erlang / Elixir'))
+        self.d.readme // self.d.readme.erlang
+        self.d.readme.erlang // '''
+* [The BEAM Book](https://github.com/happi/theBeamBook)
+* embedded/alternate Erlang VMs:
+  * https://github.com/bettio/AtomVM
+  * https://github.com/kvakvs/E4VM
+  * [Erlang on Microcontrollers: The Research Continues - Dmytro Lytovchenko - EUC17](https://www.youtube.com/watch?v=6NUPormxgw8)
+
+[Elixir School](https://elixirschool.com/ru/) — главный ресурс для тех, кто хочет изучить язык программирования Elixir.
+
+* Саша Юрич [Elixir в действии](https://dmkpress.com/catalog/computer/programming/functional/978-5-97060-773-2/)
+* Чезарини Ф. [Программирование в Erlang](https://dmkpress.com/catalog/computer/programming/functional/978-5-94074-617-1/)
+* Чезарини Франческо, Виноски Стивен [Проектирование масштабируемых систем с помощью Erlang/OTP](https://www.ozon.ru/context/detail/id/140152220/)
+
+#### Databases
+
+* `Ecto`
+
+#### Web
+
+* `Cowboy`
+    * [AC1: Making a site with just the Cowboy web server](https://www.youtube.com/watch?v=LDLzqLl0aeU)
+'''
