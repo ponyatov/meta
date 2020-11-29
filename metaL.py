@@ -363,13 +363,16 @@ class dirModule(Module):
              )
         #
         self.d.doc = Dir('doc')
-        self.d // (self.d.doc // File('.gitignore'))
+        self.d // self.d.doc
+        self.d.doc // (File('.gitignore') // '*.pdf')
         self.d.bin = Dir('bin')
-        self.d // (self.d.bin // File('.gitignore'))
+        self.d // self.d.bin
+        self.d.bin // (File('.gitignore') // '*')
         self.d.src = Dir('src')
         self.d // (self.d.src // File('.gitignore'))
         self.d.tmp = Dir('tmp')
-        self.d // (self.d.tmp // File('.gitignore'))
+        self.d // self.d.tmp
+        self.d.tmp // (File('.gitignore') // '*')
         #
         self.d.mk.tool = Section('tool')
         self.d.mk //\
@@ -378,6 +381,9 @@ class dirModule(Module):
         #
         self.d.mk.obj = Section('obj')
         self.d.mk // self.d.mk.obj
+        #
+        self.d.mk.cfg = Section('cfg')
+        self.d.mk // self.d.mk.cfg
         #
         self.d.mk.alls = Section('all')
         self.d.mk // self.d.mk.alls
@@ -389,6 +395,9 @@ class dirModule(Module):
             (S('all:', pfx='.PHONY: all', inline=True) //
              self.d.mk.all.target) //\
             (self.d.mk.all.body)
+        #
+        self.d.mk.rule = Section('rules')
+        self.d.mk // self.d.mk.rule
         #
         self.d.mk.install = Section('install')
         self.d.mk.install.body = Section('install')
@@ -1018,3 +1027,57 @@ class exModule(dirModule):
 * `Cowboy` pure web server
     * [AC1: Making a site with just the Cowboy web server](https://www.youtube.com/watch?v=LDLzqLl0aeU)
 '''
+
+#######################################################################################
+
+
+class cFile(File):
+    def __init__(self, V, ext='.c', comment='/*'):
+        super().__init__(V, ext, comment)
+
+
+class cppFile(cFile):
+    def __init__(self, V, ext='.cpp', comment='//'):
+        super().__init__(V, ext, comment)
+
+
+class lexFile(File):
+    def __init__(self, V, ext='.lex', comment='/*'):
+        super().__init__(V, ext, comment)
+
+
+class yaccFile(File):
+    def __init__(self, V, ext='.yacc', comment='/*'):
+        super().__init__(V, ext, comment)
+
+
+class cModule(dirModule):
+    def init_apt(self):
+        super().init_apt()
+        self.d.apt // 'build-essential tcc'
+
+    def init_mk(self):
+        super().init_mk()
+        #
+        self.d.mk.tool //\
+            f'{"CC":<9} = tcc'
+        #
+        self.d.mk.cfg //\
+            'CFLAGS += -O0 -g2'
+        #
+        self.d.mk.rule //\
+            (S('$(BIN)/%: $(SRC)/%.c')//'$(CC) $(CFLAGS) -o $@ $<')
+
+
+class cppModule(cModule):
+    def init_apt(self):
+        super().init_apt()
+        self.d.apt // 'g++'
+
+    def init_mk(self):
+        super().init_mk()
+        self.d.mk.tool //\
+            f'{"CXX":<9} = g++'
+        #
+        self.d.mk.rule //\
+            (S('$(BIN)/%: $(SRC)/%.cpp')//'$(CXX) $(CFLAGS) -o $@ $<')

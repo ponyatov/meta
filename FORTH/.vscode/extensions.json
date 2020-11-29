@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "stkb.rewrap",
+        "tabnine.tabnine-vscode",
+        /* \ <section:extensions> */
+        "fttx.language-forth",
+        /* / <section:extensions> */
+    ]
+}
