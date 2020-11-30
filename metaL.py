@@ -404,7 +404,8 @@ class dirModule(Module):
         self.d.mk //\
             (self.d.mk.install //
              (S('install: $(OS)_install', pfx='.PHONY: install') //
-              self.d.mk.install.body) //
+              self.d.mk.install.body //
+              '$(MAKE) update') //
              (S('update: $(OS)_update', pfx='.PHONY: update') //
               self.d.mk.update) //
              (S('$(OS)_install $(OS)_update:', pfx='.PHONY: $(OS)_install $(OS)_update') //
@@ -448,7 +449,7 @@ class dirModule(Module):
 
     def __setattr__(self, key, that):
         super().__setattr__(key, that)
-        if key in ['TITLE', 'ABOUT']:
+        if key in ['TITLE', 'ABOUT', 'GITHUB']:
             try:
                 self.init_readme()
             except AttributeError:
@@ -912,6 +913,27 @@ class exModule(dirModule):
         self.init_elixir_mix()
         self.init_elixir_ex()
 
+    def mixin_web(self):
+        webModule.mixin(self)
+        self.d.apt // 'nodejs'
+        #
+        self.d.mix.deps //\
+            '{:cowboy, "~> 2.8"},' //\
+            '{:plug, "~> 1.11"},' //\
+            '{:plug_cowboy, "~> 2.4"},' //\
+            '{:ecto, "~> 3.5"},' //\
+            '{:json, "~> 1.3"},' //\
+            '{:earmark, "~> 1.4"},'
+        #
+        self.d.src.ex.start //\
+            f'IO.puts "\\nhttp://{self.config.HOST}:{self.config.PORT}\\n"' //\
+            (S('children = [', ']') //
+             (S('{', '}') //
+                'Plug.Cowboy, scheme: :http, plug: Web.Router,' //
+                f'options: [ip: {self.config.HOST_tuple}, port: {self.config.PORT}]')
+             ) //\
+            'Supervisor.start_link(children, strategy: :one_for_one)'
+
     def init_elixir_ex(self):
         self.d.src.ex = exFile(f'{self:l}')
         self.d.src // self.d.src.ex
@@ -953,7 +975,9 @@ class exModule(dirModule):
         self.d.mix.deps = Section('deps')
         deps = (S('defp deps do', 'end', pfx='') //
                 (S('[', ']') //
-                 self.d.mix.deps))
+                 self.d.mix.deps //
+                 '{:exsync, "~> 0.2.4", only: :dev},'
+                 ))
         #
         self.d.mix //\
             (S(f'defmodule {self:m}.MixProject do', 'end') //
@@ -972,6 +996,7 @@ class exModule(dirModule):
             '$(MIX)  format $(S)' //\
             '$(IEX)  -S $(MIX)' //\
             '$(MAKE) $@'
+        self.d.mk.update // '$(MIX) deps.get'
         self.d.mk.merge // 'MERGE += .formatter.exs mix.exs'
 
     def init_apt(self):
@@ -1006,14 +1031,17 @@ class exModule(dirModule):
         self.d.readme.erlang = (S('\n\n### Erlang / Elixir'))
         self.d.readme // self.d.readme.erlang
         self.d.readme.erlang // '''
+* [Elixir - как без усилий поднять тысячи процессов на одной машине](https://www.youtube.com/watch?v=jmW5ngfYmdc)
+* [Elixir School /ru/](https://elixirschool.com/ru/) — главный ресурс для тех, кто хочет изучить язык программирования Elixir.
+* [ElixirBridge /en/](http://elixirbridge.org/docs/)
+
+#### BEAM virtual machine
+
 * [The BEAM Book](https://github.com/happi/theBeamBook)
 * embedded/alternate Erlang VMs:
   * https://github.com/bettio/AtomVM
   * https://github.com/kvakvs/E4VM
   * [Erlang on Microcontrollers: The Research Continues - Dmytro Lytovchenko - EUC17](https://www.youtube.com/watch?v=6NUPormxgw8)
-
-* [Elixir - как без усилий поднять тысячи процессов на одной машине](https://www.youtube.com/watch?v=jmW5ngfYmdc)
-* [Elixir School /ru/](https://elixirschool.com/ru/) — главный ресурс для тех, кто хочет изучить язык программирования Elixir.
 
 #### Books
 

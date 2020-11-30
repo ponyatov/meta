@@ -5,6 +5,7 @@ from metaL import *
 class thisModule(exModule):
     def __init__(self, V=None):
         super().__init__(V)
+        exModule.mixin_web(self)
 
 
 mod = thisModule()
@@ -79,19 +80,11 @@ wёbдизайнеров на мобильные устройства, и на �
 mix = mod.d.mix
 
 mix.deps //\
-    '{:cowboy, "~> 2.8"},' //\
-    '{:plug, "~> 1.11"},' //\
-    '{:plug_cowboy, "~> 2.4"},' //\
-    '{:ecto, "~> 3.5"},' //\
-    '{:json, "~> 1.3"},' //\
-    '{:earmark, "~> 1.4"},' //\
-    '{:tortoise, "~> 0.9.5"},' //\
     '{:bamboo, "~> 1.6"},' //\
+    '' //\
+    '{:tortoise, "~> 0.9.5"},' //\
     '#{:mqtt, "~> 0.3.3"},' //\
-    '#{:modbus, "~> 0.3.7"},' //\
-    '{:exsync, "~> 0.2.4", only: :dev},'
-
-webModule.mixin(mod)
+    '#{:modbus, "~> 0.3.7"},'
 
 mix.application.extra // ':cowboy, :plug,'
 
@@ -119,14 +112,5 @@ router //\
       'conn |> send_resp(:not_found,"#{local()} Undefined")') //
      '')
 
-
-mod.d.src.ex.start //\
-    f'IO.puts "\\nhttp://{mod.config.HOST}:{mod.config.PORT}\\n"' //\
-    (S('children = [', ']') //
-     (S('{', '}') //
-      'Plug.Cowboy, scheme: :http, plug: Web.Router,' //
-      f'options: [ip: {mod.config.HOST_tuple}, port: {mod.config.PORT}]')
-     ) //\
-    'Supervisor.start_link(children, strategy: :one_for_one)'
 
 sync()
