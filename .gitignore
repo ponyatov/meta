@@ -1,14 +1,18 @@
+# \ <section:top>
 *~
 *.swp
 *.log
-
+# / <section:top>
+# \ <section:mid>
+*.pyc
 /bin
-/include
 /lib
 /lib64
-/__pycache__
 /share
+/__pycache__
 /pyvenv.cfg
-
+# / <section:mid>
+# \ <section:bot>
 /circ/
 /SCADA/
+# / <section:bot>

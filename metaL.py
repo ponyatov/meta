@@ -290,10 +290,14 @@ class dirModule(Module):
               self.d.vscode.tasks.tasks))
 
     def init_vscode_settings(self):
-        self.d.vscode.settings = Section('settings')
-        self.d.vscode.settings.multi = Section('multi')
-        self.d.vscode.settings // self.d.vscode.settings.multi
+        self.d.vscode.settings = jsonFile('settings')
+        self.d.vscode // self.d.vscode.settings
+        self.d.vscode.settings.top // '{'
+        self.d.vscode.settings.bot // '}'
+
         #
+        self.d.vscode.settings.multi = Section('multi')
+        self.d.vscode.settings.mid // self.d.vscode.settings.multi
 
         def multi(key, cmd):
             return (S('{', '},') //
@@ -310,26 +314,21 @@ class dirModule(Module):
              multi('f12', self.d.vscode.settings.f12))
         #
         self.d.vscode.settings.watcher = Section('watcher')
-        self.d.vscode.settings // self.d.vscode.settings.watcher
-
+        self.d.vscode.settings.mid //\
+            (S('"files.watcherExclude": {', '},') //
+             self.d.vscode.settings.watcher)
         #
         self.d.vscode.settings.exclude = Section('exclude')
-        self.d.vscode.settings // self.d.vscode.settings.exclude
+        self.d.vscode.settings.mid //\
+            (S('"files.exclude": {', '},') //
+             self.d.vscode.settings.exclude)
         #
         self.d.vscode.settings.assoc = Section('assoc')
-        self.d.vscode.settings // self.d.vscode.settings.assoc
+        self.d.vscode.settings.mid //\
+            (S('"files.associations": {', '},') //
+             self.d.vscode.settings.assoc)
         #
-        self.d.vscode //\
-            (jsonFile('settings') //
-             (S('{', '}') //
-              self.d.vscode.settings.multi //
-              (S('"files.watcherExclude": {', '},') //
-               self.d.vscode.settings.watcher) //
-                (S('"files.exclude": {', '},') //
-                 self.d.vscode.settings.exclude) //
-                (S('"files.associations": {', '},') //
-                 self.d.vscode.settings.assoc) //
-                '"editor.tabSize": 4'))
+        self.d.vscode.settings.mid // '"editor.tabSize": 4'
 
     def init_vscode_extensions(self):
         self.d.vscode.extensions = Section('extensions')
@@ -529,19 +528,26 @@ class pyModule(dirModule):
     def init_giti(self):
         super().init_giti()
         self.d.giti.mid //\
+            '*.pyc' //\
             '/bin' //\
             '/lib' //\
             '/lib64' //\
             '/share' //\
-            '__pycache__' //\
+            '/__pycache__' //\
             '/pyvenv.cfg'
 
     def init_vscode_settings(self):
         super().init_vscode_settings()
-        pyfiles = re.sub(r'^\s+', '', '''
-        "**/__pycache__/**": true,
-        "**/bin/**": true, "**/include/**": true, "**/lib*/**": true,
-        "**/share/**": true, "**/*.pyc": true, "**/pyvenv.cfg": true,''')
+        self.d.vscode.settings.top //\
+            '"python.pythonPath"              : "./bin/python3",' //\
+            '"python.formatting.provider"     : "autopep8",' //\
+            '"python.formatting.autopep8Path" : "./bin/autopep8",' //\
+            '"python.formatting.autopep8Args" : ["--ignore=E26,E302,E401,E402"],'
+
+        pyfiles = (S() //
+                   '"**/__pycache__/**": true,' //
+                   '"**/bin/**": true, "**/include/**": true, "**/lib*/**": true,' //
+                   '"**/share/**": true, "**/*.pyc": true, "**/pyvenv.cfg": true,')
         self.d.vscode.settings.watcher // pyfiles
         self.d.vscode.settings.exclude // pyfiles
         self.d.vscode.settings.assoc //\

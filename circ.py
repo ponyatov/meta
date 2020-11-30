@@ -1,8 +1,14 @@
 
 from metaL import *
 
+
 class thisModule(pyModule):
-    pass
+    def init_vscode_settings(self):
+        super().init_vscode_settings()
+        self.d.vscode.settings.f11.value = ' make pep '
+        self.d.vscode.settings.f12.value = f' clear ; make {self} '
+        self.d.vscode.settings.assoc // './do": "python",'
+
 
 mod = thisModule()
 mod.MODULE = 'metaL'
@@ -26,5 +32,9 @@ mod.ABOUT = """
 `metaL` **is a method of programming** in Python (or any other language you prefer: JS, PHP,...)
 
 """
+
+mod.d.giti.bot //\
+    '/circ/' //\
+    '/SCADA/'
 
 sync()
