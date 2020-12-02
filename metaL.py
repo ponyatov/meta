@@ -948,7 +948,10 @@ class exModule(dirModule):
              'require Logger' //
              'use Plug.Router' //
              '' //
+             'plug Plug.Logger' //
+             '' //
              'plug :match' //
+             'plug Plug.Static, at: "/static/", from: "static/"' //
              'plug :dispatch' //
              '' //
              (S('defp local,') //
@@ -959,6 +962,12 @@ class exModule(dirModule):
              '' //
              (S('get "/" do', 'end') //
               'conn |> send_resp(:ok,"#{local()} I`m index")') //
+             '' //
+             (S('get "/css.css" do', 'end') //
+              'conn |> send_resp(:ok, File.read!("static/css.css"))') //
+             '' //
+             (S('get "/favicon.ico" do', 'end') //
+              'conn |> send_resp(:ok, File.read!("static/logo.png"))') //
              '' //
              (S('get "/README" do', 'end') //
               'conn' //
@@ -971,11 +980,11 @@ class exModule(dirModule):
               '|> send_resp(:not_found,"""' //
               '#{inspect :calendar.local_time()}' //
               ('-'*66) //
-                'conn.request_path: #{inspect conn.request_path}' //
-                ('-'*66) //
-                '#{inspect conn, limit: :infinity}' //
-                '""")') //
-                '')
+              'conn.request_path: #{inspect conn.request_path}' //
+              ('-'*66) //
+              '#{inspect conn, limit: :infinity}' //
+              '""")') //
+             '')
 
     def init_elixir_ex(self):
         self.d.src.ex = exFile(f'{self:l}')
