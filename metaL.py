@@ -1089,11 +1089,12 @@ class exModule(dirModule):
 
 #### Web
 
+* `Cowboy` pure web server
+    * [Building Alchemist.Camp](https://www.youtube.com/playlist?list=PLFhQVxlaKQEn5pqhwqdxItvv80ZnoLqMA)
+
 * `Plug` composable web module specification
     * [Building a Static Site in Elixir](https://www.youtube.com/watch?v=CK78zms9IHM)
     * [Elixir: Setup Plug and Cowboy - 004](https://www.youtube.com/watch?v=VxepM7_54dA)
-* `Cowboy` pure web server
-    * [Building Alchemist.Camp](https://www.youtube.com/playlist?list=PLFhQVxlaKQEn5pqhwqdxItvv80ZnoLqMA)
 '''
 
 #######################################################################################
