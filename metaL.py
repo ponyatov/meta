@@ -929,7 +929,7 @@ class exModule(dirModule):
             ':cowboy, :plug,'
         #
         self.d.src.ex.start //\
-            f'IO.puts "\\nhttp://{self.config.HOST}:{self.config.PORT}\\n"' //\
+            f'Logger.info inspect [__MODULE__,__ENV__.function,"http://{self.config.HOST}:{self.config.PORT}" ]' //\
             (S('children = [', ']') //
              (S('{', '}') //
                 'Plug.Cowboy, scheme: :http, plug: Web.Router,' //
@@ -945,6 +945,7 @@ class exModule(dirModule):
         self.d.mk.obj // f'S += src/web/{self.d.src.router}'
         self.d.src.router //\
             (S('defmodule Web.Router do', 'end') //
+             'require Logger' //
              'use Plug.Router' //
              '' //
              'plug :match' //
@@ -962,10 +963,18 @@ class exModule(dirModule):
              (S('get "/README" do', 'end') //
               'conn' //
               '|> put_resp_content_type("text/html")' //
-              '|> send_resp(:ok, local()<>(File.read!("README.md") |> Earmark.as_html!()))') //
+              '|> send_resp(:ok, local() <> (File.read!("README.md") |> Earmark.as_html!()))') //
              '' //
              (S('match _ do', 'end') //
-              'conn |> send_resp(:not_found,"#{local()} Undefined")') //
+              'conn' //
+              '|> put_resp_content_type("text/plain")' //
+              '|> send_resp(:not_found,"""' //
+              '#{inspect :calendar.local_time()}' //
+              ('-'*66) //
+                'conn.request_path: #{inspect conn.request_path}' //
+                ('-'*66) //
+                '#{inspect conn, limit: :infinity}' //
+                '""")') //
                 '')
 
     def init_elixir_ex(self):
@@ -979,6 +988,7 @@ class exModule(dirModule):
              self.d.src.ex.start)
         self.d.src.ex //\
             (S(f'defmodule {self:m} do', 'end') //
+             'require Logger' //
              self.d.src.ex.module //
              (S('def hello do', 'end')//':world'))
         self.d.mk.obj // f'S += src/{self:l}.ex'
@@ -1093,6 +1103,7 @@ class exModule(dirModule):
     * [Building Alchemist.Camp](https://www.youtube.com/playlist?list=PLFhQVxlaKQEn5pqhwqdxItvv80ZnoLqMA)
 
 * `Plug` composable web module specification
+    * Tensor Programming [Elixir Tutorial Part 5 (Plug and Cowboy)](https://www.youtube.com/watch?v=F4oAZx_ao4s)
     * [Building a Static Site in Elixir](https://www.youtube.com/watch?v=CK78zms9IHM)
     * [Elixir: Setup Plug and Cowboy - 004](https://www.youtube.com/watch?v=VxepM7_54dA)
 '''
