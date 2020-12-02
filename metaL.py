@@ -953,9 +953,14 @@ class exModule(dirModule):
              (S('get "/" do', 'end') //
               'conn |> send_resp(:ok,"#{local()} I`m index")') //
              '' //
+             (S('get "/README" do', 'end') //
+              'conn' //
+              '|> put_resp_content_type("text/html")' //
+              '|> send_resp(:ok, File.read!("README.md") |> Earmark.as_html!())') //
+             '' //
              (S('match _ do', 'end') //
               'conn |> send_resp(:not_found,"#{local()} Undefined")') //
-             '')
+                '')
 
     def init_elixir_ex(self):
         self.d.src.ex = exFile(f'{self:l}')
