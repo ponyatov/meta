@@ -107,13 +107,14 @@ class Primitive(Object):
 
 class S(Primitive):
 
-    def __init__(self, begin=None, end='', pfx=None, inline=False):
+    def __init__(self, begin=None, end='', pfx=None, inline=False, tabs=1):
         V = f'{begin}' if begin != None else ''
         super().__init__(V)
         self.begin = begin
         self.end = end
         self.pfx = pfx
         self.inline = inline
+        self.tabs = tabs
 
     def file(self, to, depth=0):
         ret = ''
@@ -131,7 +132,7 @@ class S(Primitive):
         else:
             ret += '\n' if self.begin != None else ''
             for j in self.nest:
-                ret += j.file(to, depth+1)
+                ret += j.file(to, depth+self.tabs)
         #
         if self.end:
             if self.inline:
@@ -934,7 +935,8 @@ class exModule(dirModule):
                 'Plug.Cowboy, scheme: :http, plug: Web.Router,' //
                 f'options: [ip: {self.config.HOST_tuple}, port: {self.config.PORT}]')
              ) //\
-            'Supervisor.start_link(children, strategy: :one_for_one)'
+            f'opts = [strategy: :one_for_one, name: {self:m}.App]' //\
+            'Supervisor.start_link(children, opts)'
         #
         self.d.src.web = Dir('web')
         self.d.src // self.d.src.web
@@ -948,7 +950,11 @@ class exModule(dirModule):
              'plug :match' //
              'plug :dispatch' //
              '' //
-             'defp local, do: "<pre>#{inspect :calendar.local_time()}</pre><hr>"' //
+             (S('defp local,') //
+              (S('do: """', '"""', tabs=0) //
+               '<a href="/README">README</a>' //
+               '#{inspect :calendar.local_time()}' //
+               '<hr>')) //
              '' //
              (S('get "/" do', 'end') //
               'conn |> send_resp(:ok,"#{local()} I`m index")') //
@@ -956,7 +962,7 @@ class exModule(dirModule):
              (S('get "/README" do', 'end') //
               'conn' //
               '|> put_resp_content_type("text/html")' //
-              '|> send_resp(:ok, File.read!("README.md") |> Earmark.as_html!())') //
+              '|> send_resp(:ok, local()<>(File.read!("README.md") |> Earmark.as_html!()))') //
              '' //
              (S('match _ do', 'end') //
               'conn |> send_resp(:not_found,"#{local()} Undefined")') //
@@ -981,7 +987,7 @@ class exModule(dirModule):
         self.d.mix = exsFile('mix')
         self.d // self.d.mix
         project = \
-            (S('def project do', 'end', pfx='') //
+            (S('def project do', 'end') //
              (S('[', ']') //
                 f'app: :{self:l},' //
                 'version: "0.0.1",' //
@@ -1001,7 +1007,7 @@ class exModule(dirModule):
               self.d.mix.application.mod))
         #
         self.d.mix.deps = Section('deps')
-        deps = (S('defp deps do', 'end', pfx='') //
+        deps = (S('defp deps do', 'end') //
                 (S('[', ']') //
                  self.d.mix.deps //
                  '{:exsync, "~> 0.2.4", only: :dev},'
@@ -1087,7 +1093,7 @@ class exModule(dirModule):
     * [Building a Static Site in Elixir](https://www.youtube.com/watch?v=CK78zms9IHM)
     * [Elixir: Setup Plug and Cowboy - 004](https://www.youtube.com/watch?v=VxepM7_54dA)
 * `Cowboy` pure web server
-    * [AC1: Making a site with just the Cowboy web server](https://www.youtube.com/watch?v=LDLzqLl0aeU)
+    * [Building Alchemist.Camp](https://www.youtube.com/playlist?list=PLFhQVxlaKQEn5pqhwqdxItvv80ZnoLqMA)
 '''
 
 #######################################################################################
