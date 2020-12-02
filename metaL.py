@@ -924,6 +924,8 @@ class exModule(dirModule):
             '{:ecto, "~> 3.5"},' //\
             '{:json, "~> 1.3"},' //\
             '{:earmark, "~> 1.4"},'
+        self.d.mix.application.extra //\
+            ':cowboy, :plug,'
         #
         self.d.src.ex.start //\
             f'IO.puts "\\nhttp://{self.config.HOST}:{self.config.PORT}\\n"' //\
@@ -933,6 +935,27 @@ class exModule(dirModule):
                 f'options: [ip: {self.config.HOST_tuple}, port: {self.config.PORT}]')
              ) //\
             'Supervisor.start_link(children, strategy: :one_for_one)'
+        #
+        self.d.src.web = Dir('web')
+        self.d.src // self.d.src.web
+        self.d.src.router = exFile('router')
+        self.d.src.web // self.d.src.router
+        self.d.mk.obj // f'S += src/web/{self.d.src.router}'
+        self.d.src.router //\
+            (S('defmodule Web.Router do', 'end') //
+             'use Plug.Router' //
+             '' //
+             'plug :match' //
+             'plug :dispatch' //
+             '' //
+             'defp local, do: "<pre>#{inspect :calendar.local_time()}</pre><hr>"' //
+             '' //
+             (S('get "/" do', 'end') //
+              'conn |> send_resp(:ok,"#{local()} I`m index")') //
+             '' //
+             (S('match _ do', 'end') //
+              'conn |> send_resp(:not_found,"#{local()} Undefined")') //
+             '')
 
     def init_elixir_ex(self):
         self.d.src.ex = exFile(f'{self:l}')

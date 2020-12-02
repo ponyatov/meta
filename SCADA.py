@@ -88,29 +88,5 @@ mix.deps //\
 
 mix.application.extra // ':cowboy, :plug,'
 
-mod.d.src.web = Dir('web')
-mod.d.src // mod.d.src.web
-
-router = exFile('router')
-mod.d.src.web // router
-
-mod.d.mk.obj // f'S += src/web/{router}'
-
-router //\
-    (S('defmodule Web.Router do', 'end') //
-     'use Plug.Router' //
-     '' //
-     'plug :match' //
-     'plug :dispatch' //
-     '' //
-     'defp local, do: "<pre>#{inspect :calendar.local_time()}</pre><hr>"' //
-     '' //
-     (S('get "/" do', 'end') //
-      'conn |> send_resp(:ok,"#{local()} I`m index")') //
-     '' //
-     (S('match _ do', 'end') //
-      'conn |> send_resp(:not_found,"#{local()} Undefined")') //
-     '')
-
 
 sync()
