@@ -37,6 +37,8 @@ class Object:
             return f'{self.value}'
         if spec == 'l':
             return f'{self.value.lower()}'
+        if spec == 'u':
+            return f'{self.value.upper()}'
         if spec == 'm':
             return f'{self.value.capitalize()}'
         raise TypeError(spec)
@@ -49,9 +51,9 @@ class Object:
         ret = self.pad(depth, tab)
         ret += self.head(prefix, test)
         for i in self.keys():
-            ret += self[i].dump(depth+1, f'{i} = ', test)
+            ret += self[i].dump(depth+1, f'{i} = ', test=test)
         for j, k in enumerate(self.nest):
-            ret += k.dump(depth+1, f'{j}:', test)
+            ret += k.dump(depth+1, f'{j}: ', test=test)
         return ret
 
     def head(self, prefix='', test=False):
@@ -87,6 +89,18 @@ class Object:
     def keys(self):
         return sorted(self.slot.keys())
 
+    def __getitem__(self, key):
+        assert isinstance(key, str)
+        return self.slot[key]
+
+    def __setitem__(self, key, that):
+        assert isinstance(key, str)
+        if isinstance(that, str):
+            that = S(that)
+        assert isinstance(that, Object)
+        self.slot[key] = that
+        return self
+
     def __floordiv__(self, that):
         if isinstance(that, str):
             that = S(that)
@@ -107,14 +121,13 @@ class Primitive(Object):
 
 class S(Primitive):
 
-    def __init__(self, begin=None, end='', pfx=None, inline=False, tabs=1):
+    def __init__(self, begin=None, end='', pfx=None, inline=False):
         V = f'{begin}' if begin != None else ''
         super().__init__(V)
         self.begin = begin
         self.end = end
         self.pfx = pfx
         self.inline = inline
-        self.tabs = tabs
 
     def file(self, to, depth=0):
         ret = ''
@@ -132,7 +145,7 @@ class S(Primitive):
         else:
             ret += '\n' if self.begin != None else ''
             for j in self.nest:
-                ret += j.file(to, depth+self.tabs)
+                ret += j.file(to, depth+1)
         #
         if self.end:
             if self.inline:
@@ -569,6 +582,48 @@ class htmlFile(File):
     def __init__(self, V, ext='.html', comment='<!--'):
         super().__init__(V, ext, comment)
 
+
+class HTML(S):
+    def __init__(self, V=None, **kwargs):
+        super().__init__(V)
+        for i in kwargs:
+            self[i] = kwargs[i]
+
+    def file(self, to, depth=0):
+        ret = ''
+        ret += f'{to.tab*depth}<{self.type.upper()}'
+        for i in self.keys():
+            ret += f' {i}="{self[i]}"'
+        ret += '>\n'
+        for j in self.nest:
+            ret += j.file(to, depth+1)
+        ret += f'{to.tab*depth}</{self.type.upper()}>\n'
+        return ret
+
+
+class TABLE(HTML):
+    pass
+
+
+class TR(HTML):
+    pass
+
+
+class TD(HTML):
+    pass
+
+
+class A(HTML):
+    pass
+
+
+class IMG(HTML):
+    pass
+
+class P(HTML):
+    def __init__(self, V):
+        super().__init__('')
+        self // V
 
 class webModule(pyModule):
 
