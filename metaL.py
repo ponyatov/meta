@@ -588,21 +588,30 @@ class webModule(pyModule):
             '$(MAKE) js'
         self.d.mk.js //\
             (S('js: \\', pfx='.PHONY: js') //
-                "static/jquery.js" //
-                "static/bootstrap.css static/bootstrap.js" //
-                "static/leaflet.js" //
-                '')
-        self.d.mk.js //\
+                "static/jquery.js \\" //
+                "static/bootstrap.css static/bootstrap.js \\" //
+                "static/leaflet.css static/leaflet.js")
+        self.d.mk.js // '' //\
             'JQUERY_VER = 3.5.1' //\
             'JQUERY_JS  = https://code.jquery.com/jquery-$(JQUERY_VER).min.js' //\
             (S("static/jquery.js:") //
                 "$(WGET) -O $@ $(JQUERY_JS)")
-        self.d.mk.js //\
+        self.d.mk.js // '' //\
             'BOOTSTRAP_VER = 3.4.1' //\
             (S("static/bootstrap.css:") //
                 "$(WGET) -O $@ https://bootswatch.com/3/darkly/bootstrap.min.css") //\
             (S("static/bootstrap.js:") //
                 "$(WGET) -O $@ https://maxcdn.bootstrapcdn.com/bootstrap/$(BOOTSTRAP_VER)/js/bootstrap.min.js")
+        self.d.mk.js // '' //\
+            'LEAFLET_VER = 1.7.1' //\
+            'LEAFLET_CSS = https://unpkg.com/leaflet@$(LEAFLET_VER)/dist/leaflet.css' //\
+            'LEAFLET_JS  = https://unpkg.com/leaflet@$(LEAFLET_VER)/dist/leaflet.js' //\
+            (S('static/leaflet.css:') //
+             '$(WGET) -O $@ $(LEAFLET_CSS)') //\
+            (S('static/leaflet.js:') //
+             '$(WGET) -O $@ $(LEAFLET_JS)')
+
+        #
         self.d.mk.merge // 'MERGE += static templates'
 
     def init_static(self):

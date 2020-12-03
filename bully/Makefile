@@ -71,19 +71,28 @@ $(PY) $(PIP):
 # \ <section:js>
 .PHONY: js
 js: \
-	static/jquery.js
-	static/bootstrap.css static/bootstrap.js
-	static/leaflet.js
-	
+	static/jquery.js \
+	static/bootstrap.css static/bootstrap.js \
+	static/leaflet.css static/leaflet.js
+
 JQUERY_VER = 3.5.1
 JQUERY_JS  = https://code.jquery.com/jquery-$(JQUERY_VER).min.js
 static/jquery.js:
 	$(WGET) -O $@ $(JQUERY_JS)
+
 BOOTSTRAP_VER = 3.4.1
 static/bootstrap.css:
 	$(WGET) -O $@ https://bootswatch.com/3/darkly/bootstrap.min.css
 static/bootstrap.js:
 	$(WGET) -O $@ https://maxcdn.bootstrapcdn.com/bootstrap/$(BOOTSTRAP_VER)/js/bootstrap.min.js
+
+LEAFLET_VER = 1.7.1
+LEAFLET_CSS = https://unpkg.com/leaflet@$(LEAFLET_VER)/dist/leaflet.css
+LEAFLET_JS  = https://unpkg.com/leaflet@$(LEAFLET_VER)/dist/leaflet.js
+static/leaflet.css:
+	$(WGET) -O $@ $(LEAFLET_CSS)
+static/leaflet.js:
+	$(WGET) -O $@ $(LEAFLET_JS)
 # / <section:js>
 # / <section:install>
 # \ <section:merge>
