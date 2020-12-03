@@ -563,6 +563,11 @@ class cssFile(File):
         super().__init__(V, ext, comment)
 
 
+class htmlFile(File):
+    def __init__(self, V, ext='.html', comment='<!--'):
+        super().__init__(V, ext, comment)
+
+
 class webModule(pyModule):
 
     def __init__(self, V=None):
@@ -571,7 +576,7 @@ class webModule(pyModule):
 
     def mixin(self):
         webModule.mixin_static(self)
-        webModule.init_templates(self)
+        webModule.mixin_templates(self)
         webModule.mixin_mk(self)
 
     def mixin_mk(self):
@@ -606,14 +611,35 @@ class webModule(pyModule):
         #
         self.d.static.css = cssFile('css')
         self.d.static // self.d.static.css
-        #
-        self.d.static.all = htmlFile('all')
-        self.d.static // self.d.static.all
 
     def init_templates(self):
+        webModule.mixin_templates(self)
+
+    def mixin_templates(self):
         self.d.templates = Dir('templates')
         self.d // self.d.templates
         self.d.templates // File('.gitignore')
+        #
+        self.d.templates.all = htmlFile('all')
+        self.d.templates // self.d.templates.all
+        self.d.templates.all //\
+            '<!doctype html>' //\
+            (S('<html lang="ru">', '</html>') //
+             (S('<head>', '</head>') //
+                '<meta charset="utf-8">' //
+                '<meta http-equiv="X-UA-Compatible" content="IE=edge">' //
+                '<meta name="viewport" content="width=device-width, initial-scale=1">' //
+                '<link href="/static/bootstrap.css" rel="stylesheet">' //
+                '<link rel="shortcut icon" href="/static/logo.png" type="image/png">' //
+                '<link href="/static/css.css" rel="stylesheet">' //
+                '{% block head %}{% endblock %}'
+              ) //
+             (S('<style>', '</style>') // '{% block style %}{% endblock %}') //
+                (S('<body>', '</body>') // '{% block body %}{% endblock %}') //
+                '<script src="/static/jquery.js"></script>' //
+                '<script src="/static/bootstrap.js"></script>' //
+                '{% block script %}{% endblock %}'
+             )
 
 
 class djModule(webModule):
