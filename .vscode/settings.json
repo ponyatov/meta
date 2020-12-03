@@ -21,7 +21,7 @@
         "sequence": [
             "workbench.action.files.saveAll",
             {"command": "workbench.action.terminal.sendSequence","args": {"text":
-                "\u000D clear ; make meteo \u000D"
+                "\u000D clear ; make bully \u000D"
             }}]
     },
 ],

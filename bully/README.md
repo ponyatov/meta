@@ -6,4 +6,4 @@
 Django-приложение написанное с использованием генеративного метапрограммирования
 * универсальная шаблонизация кода
 
-github: https://github.com/ponyatov/bully
+github: https://bitbucket.org/ponyatov/bully

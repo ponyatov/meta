@@ -13,6 +13,6 @@ mod.ABOUT = """
 Django-приложение написанное с использованием генеративного метапрограммирования
 * универсальная шаблонизация кода
 """
-mod.GITHUB = 'https://bitbucket.org/ponyatov/'
+mod.GITHUB = 'https://bitbucket.org/ponyatov'
 
 sync()

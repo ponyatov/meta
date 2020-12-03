@@ -4,11 +4,12 @@
 *.log
 # / <section:top>
 # \ <section:mid>
+*.pyc
 /bin
 /lib
 /lib64
 /share
-__pycache__
+/__pycache__
 /pyvenv.cfg
 # / <section:mid>
 # \ <section:bot>

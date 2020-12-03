@@ -52,6 +52,7 @@ install: $(OS)_install
 	$(MAKE) createsuperuser
 	$(MAKE) js
 	# / <section:install>
+	$(MAKE) update
 .PHONY: update
 update: $(OS)_update
 	# \ <section:update>
