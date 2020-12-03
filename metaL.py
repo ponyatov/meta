@@ -570,7 +570,7 @@ class webModule(pyModule):
         webModule.mixin(self)
 
     def mixin(self):
-        webModule.init_static(self)
+        webModule.mixin_static(self)
         webModule.init_templates(self)
         webModule.mixin_mk(self)
 
@@ -595,6 +595,9 @@ class webModule(pyModule):
         self.d.mk.merge // 'MERGE += static templates'
 
     def init_static(self):
+        webModule.mixin_static(self)
+
+    def mixin_static(self):
         self.d.static = Dir('static')
         self.d // self.d.static
         self.d.static.giti = File('.gitignore')
@@ -603,6 +606,9 @@ class webModule(pyModule):
         #
         self.d.static.css = cssFile('css')
         self.d.static // self.d.static.css
+        #
+        self.d.static.all = htmlFile('all')
+        self.d.static // self.d.static.all
 
     def init_templates(self):
         self.d.templates = Dir('templates')
@@ -674,7 +680,8 @@ class djModule(webModule):
         for i in ['admin', 'auth', 'contenttypes', 'sessions', 'messages', 'staticfiles']:
             apps // f"'django.contrib.{i}',"
         self.d.dj.settings // '' //\
-            "STATIC_URL = '/static/'"
+            f"{'STATIC_URL':<17} = '/static/'" //\
+            f"{'STATICFILES_DIRS':<17} = [BASE_DIR/'static']"
         #
         self.d.dj.settings // '' //\
             (S('TEMPLATES = [', ']') //
@@ -702,7 +709,9 @@ class djModule(webModule):
               f"'NAME': BASE_DIR/'{self}.sqlite3',"))
         #
         self.d.dj.settings // '' //\
-            "LANGUAGE_CODE = 'ru-ru'"
+            "LANGUAGE_CODE = 'ru-ru'" //\
+            "DATE_FORMAT = '%d/%m/%Y'" //\
+            "DATETIME_FORMAT = '%m/%d/%Y %H:%M:%S'"
 
     def init_apt(self):
         super().init_apt()

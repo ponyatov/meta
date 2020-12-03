@@ -16,7 +16,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 
-STATIC_URL = '/static/'
+STATIC_URL        = '/static/'
+STATICFILES_DIRS  = [BASE_DIR/'static']
 
 TEMPLATES = [
     {
@@ -47,3 +48,5 @@ DATABASES = {
 }
 
 LANGUAGE_CODE = 'ru-ru'
+DATE_FORMAT = '%d/%m/%Y'
+DATETIME_FORMAT = '%m/%d/%Y %H:%M:%S'
