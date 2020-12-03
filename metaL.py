@@ -604,12 +604,12 @@ class webModule(pyModule):
                 "$(WGET) -O $@ https://maxcdn.bootstrapcdn.com/bootstrap/$(BOOTSTRAP_VER)/js/bootstrap.min.js")
         self.d.mk.js // '' //\
             'LEAFLET_VER = 1.7.1' //\
-            'LEAFLET_CSS = https://unpkg.com/leaflet@$(LEAFLET_VER)/dist/leaflet.css' //\
-            'LEAFLET_JS  = https://unpkg.com/leaflet@$(LEAFLET_VER)/dist/leaflet.js' //\
-            (S('static/leaflet.css:') //
-             '$(WGET) -O $@ $(LEAFLET_CSS)') //\
-            (S('static/leaflet.js:') //
-             '$(WGET) -O $@ $(LEAFLET_JS)')
+            'LEAFLET_ZIP = http://cdn.leafletjs.com/leaflet/v$(LEAFLET_VER)/leaflet.zip' //\
+            (S('$(TMP)/leaflet.zip:') //
+                '$(WGET) -O $@ $(LEAFLET_ZIP)') //\
+            'static/leaflet.css: static/leaflet.js' //\
+            (S('static/leaflet.js: $(TMP)/leaflet.zip') //
+             'unzip -d static $< leaflet.css leaflet.js* images/* && touch $@')
 
         #
         self.d.mk.merge // 'MERGE += static templates'
@@ -622,7 +622,9 @@ class webModule(pyModule):
         self.d // self.d.static
         self.d.static.giti = File('.gitignore')
         self.d.static // self.d.static.giti
-        self.d.static.giti // 'jquery.js' // 'bootstrap.*' // 'leaflet.*'
+        self.d.static.giti //\
+            'jquery.js' // 'bootstrap.*' //\
+            'leaflet.*' // 'images/layers*.png' // 'images/marker-*.png'
         #
         self.d.static.css = cssFile('css')
         self.d.static // self.d.static.css
