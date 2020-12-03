@@ -15,4 +15,7 @@ Django-приложение написанное с использованием
 """
 mod.GITHUB = 'https://bitbucket.org/ponyatov'
 
+mod.d.templates.index.mid //\
+    (S('<TABLE id="layout">', '</TABLE>'))
+
 sync()

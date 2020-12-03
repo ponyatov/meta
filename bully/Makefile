@@ -69,13 +69,17 @@ $(PY) $(PIP):
 	$(MAKE) update
 # / <section:pyinst>
 # \ <section:js>
-JQUERY_VER     = 3.5.1
-BOOTSTRAP_VER  = 3.4.1
 .PHONY: js
-js: static/jquery.js \
+js: \
+	static/jquery.js
 	static/bootstrap.css static/bootstrap.js
+	static/leaflet.js
+	
+JQUERY_VER = 3.5.1
+JQUERY_JS  = https://code.jquery.com/jquery-$(JQUERY_VER).min.js
 static/jquery.js:
-	$(WGET) -O $@ https://code.jquery.com/jquery-$(JQUERY_VER).min.js
+	$(WGET) -O $@ $(JQUERY_JS)
+BOOTSTRAP_VER = 3.4.1
 static/bootstrap.css:
 	$(WGET) -O $@ https://bootswatch.com/3/darkly/bootstrap.min.css
 static/bootstrap.js:

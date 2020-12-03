@@ -196,6 +196,8 @@ class File(IO):
         self.commend = ''
         if self.comment == '/*':
             self.commend = ' */'
+        if self.comment == '<!--':
+            self.commend = ' -->'
         #
         self.top = Section('top')
         self.mid = Section('mid')
@@ -585,14 +587,18 @@ class webModule(pyModule):
         self.d.mk.install.body //\
             '$(MAKE) js'
         self.d.mk.js //\
-            f'{"JQUERY_VER":<13}  = 3.5.1' //\
-            f'{"BOOTSTRAP_VER":<13}  = 3.4.1'
+            (S('js: \\', pfx='.PHONY: js') //
+                "static/jquery.js" //
+                "static/bootstrap.css static/bootstrap.js" //
+                "static/leaflet.js" //
+                '')
         self.d.mk.js //\
-            (S('js: static/jquery.js \\', pfx='.PHONY: js') //
-                "static/bootstrap.css static/bootstrap.js") //\
+            'JQUERY_VER = 3.5.1' //\
+            'JQUERY_JS  = https://code.jquery.com/jquery-$(JQUERY_VER).min.js' //\
             (S("static/jquery.js:") //
-                "$(WGET) -O $@ https://code.jquery.com/jquery-$(JQUERY_VER).min.js")
+                "$(WGET) -O $@ $(JQUERY_JS)")
         self.d.mk.js //\
+            'BOOTSTRAP_VER = 3.4.1' //\
             (S("static/bootstrap.css:") //
                 "$(WGET) -O $@ https://bootswatch.com/3/darkly/bootstrap.min.css") //\
             (S("static/bootstrap.js:") //
@@ -607,7 +613,7 @@ class webModule(pyModule):
         self.d // self.d.static
         self.d.static.giti = File('.gitignore')
         self.d.static // self.d.static.giti
-        self.d.static.giti // 'jquery.js' // 'bootstrap.*'
+        self.d.static.giti // 'jquery.js' // 'bootstrap.*' // 'leaflet.*'
         #
         self.d.static.css = cssFile('css')
         self.d.static // self.d.static.css
@@ -640,6 +646,13 @@ class webModule(pyModule):
                 '<script src="/static/bootstrap.js"></script>' //
                 '{% block script %}{% endblock %}'
              )
+        #
+        self.d.templates.index = htmlFile('index')
+        self.d.templates // self.d.templates.index
+        self.d.templates.index.top //\
+            "{% extends 'all.html' %}" // "{% block body %}"
+        self.d.templates.index.bot //\
+            "{% endblock %}"
 
 
 class djModule(webModule):
@@ -1140,6 +1153,8 @@ class exModule(dirModule):
 #### Databases
 
 * `Ecto`
+    * [ElixirConf 2017 - Thinking In Ecto - Darin Wilson](https://www.youtube.com/watch?v=YQxopjai0CU)
+    * [Working with Ecto and Postgres](https://www.youtube.com/playlist?list=PLFhQVxlaKQEmRRHyX5LBl9TLSLGRzdyFq)
 
 #### Web
 
