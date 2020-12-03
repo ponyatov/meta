@@ -15,7 +15,35 @@ Django-приложение написанное с использованием
 """
 mod.GITHUB = 'https://bitbucket.org/ponyatov'
 
+
+mod.d.static.css //\
+"""
+* { background:#222;}
+table #layout { width: 100%; }
+table,tr,td { border: 1pt solid yellow; }
+"""
+
 mod.d.templates.index.mid //\
-    (S('<TABLE id="layout">', '</TABLE>'))
+    (TABLE(id='layout') //
+        (TR(id="tablehead") //
+            (TD() //
+                (TABLE(id="tablehead") //
+                    (TR() //
+                        (TD(id="logo") //
+                            (A(href="/admin/") // IMG(src="/static/logo.png"))
+                         ) //\
+                         (TD(id="tinyhead")//\
+                            P('Министерство природных ресурсов и экологии Российской Федерации')//\
+                            P('Федеральная служба по гидрометеорологии и мониторингу окружающей среды')//\
+                            P('Федеральное государственное бюджетное учреждение')//\
+                            P('Приволжское управление по гидрометеорологии<br>и мониторингу окружающей среды')//\
+                            P('гидрометеорологический центр')//\
+                         '')
+
+                     )
+                 )
+             )
+         )
+     )
 
 sync()
