@@ -1,8 +1,13 @@
 
-table   { width: 100%; }
-table * { padding: 4px; }
-table #tinyhead p { margin-bottom:0; text-align: center; }
-table   { border: 1pt solid yellow; }
-tr      { border: 1pt solid blue;   }
-   td   { border: 1pt solid green;  }
+table           { width: 100%;                            }
+table *         { padding: 4px;                           }
+table #tdhead p { margin-bottom:0; text-align: center;    }
+table *         { border: 1pt solid yellow;               }
+tr              { border: 1pt solid blue;                 }
+   td           { border: 1pt solid green;                }
+#shortdate      { text-align: right; vertical-align: top; }     
 
+@media print {
+    
+
+}

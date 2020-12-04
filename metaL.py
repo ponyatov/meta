@@ -584,20 +584,31 @@ class htmlFile(File):
 
 
 class HTML(S):
-    def __init__(self, V=None, **kwargs):
-        super().__init__(V)
+    def __init__(self, V=None, inline=False, **kwargs):
+        super().__init__(V, inline=inline)
         for i in kwargs:
             self[i] = kwargs[i]
 
     def file(self, to, depth=0):
+        # <CLASS
         ret = ''
         ret += f'{to.tab*depth}<{self.type.upper()}'
+        #
         for i in self.keys():
             ret += f' {i}="{self[i]}"'
-        ret += '>\n'
+        ret += '>'
+        if not self.inline:
+            ret += '\n'
         for j in self.nest:
-            ret += j.file(to, depth+1)
-        ret += f'{to.tab*depth}</{self.type.upper()}>\n'
+            if not self.inline:
+                ret += j.file(to, depth+1)
+            else:
+                ret += j.file(to, 0)[:-1]
+        if not self.inline:
+            ret += f'{to.tab*depth}'
+        ret += f'</{self.type.upper()}>\n'
+        # if not self.inline:
+        #     ret += '\n'
         return ret
 
 
@@ -620,10 +631,12 @@ class A(HTML):
 class IMG(HTML):
     pass
 
+
 class P(HTML):
     def __init__(self, V):
-        super().__init__('')
+        super().__init__(inline=True)
         self // V
+
 
 class webModule(pyModule):
 

@@ -17,6 +17,7 @@ S += SCADA.py
 S += FORTH.py
 S += circ.py
 S += meteo.py
+S += elixirbook.py
 #S
 
 .PHONY: pep
@@ -40,6 +41,9 @@ circ: $(PY) $(S)
 
 meteo: $(PY) $(S)
 	$(PY) meteo.py
+
+elixirbook: $(PY) $(S)
+	$(PY) elixirbook.py
 #M
 
 $(PY) $(PIP):
