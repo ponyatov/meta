@@ -93,6 +93,9 @@ mod.ABOUT = """
 * `metaL` is not a programming language
   * `metaL` **is a method of programming** in Python (or any other language you prefer: JS, PHP,...)
     * write scripts which generates your *target code*
+* bootstrap the `metaL` core with itself
+  * `circ.py` is a (partial) **circular implementation** which generates its code in Python
+    * use `meld` to compare and manually sync old and new code versions
 """
 
 sync()
