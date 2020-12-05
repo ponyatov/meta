@@ -2,12 +2,10 @@
 from metaL import *
 
 
-class thisModule(pyModule):
+class thisModule(metaModule):
     def init_vscode_settings(self):
         super().init_vscode_settings()
-        self.d.vscode.settings.f11.value = ' make pep '
-        self.d.vscode.settings.f12.value = f' clear ; make {self} '
-        self.d.vscode.settings.assoc // './do": "python",'
+        self.d.vscode.settings.assoc // '"./do": "python",'
 
 
 mod = thisModule()

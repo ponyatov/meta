@@ -13,7 +13,7 @@
         "sequence": [
             "workbench.action.files.saveAll",
             {"command": "workbench.action.terminal.sendSequence","args": {"text":
-                "\u000Dclear;make\u000D"
+                "\u000D make pep \u000D"
             }}]
     },
     {
@@ -21,7 +21,7 @@
         "sequence": [
             "workbench.action.files.saveAll",
             {"command": "workbench.action.terminal.sendSequence","args": {"text":
-                "\u000Dclear;make\u000D"
+                "\u000D clear ; make \u000D"
             }}]
     },
 ],

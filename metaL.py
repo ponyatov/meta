@@ -1308,3 +1308,20 @@ class cppModule(cModule):
         #
         self.d.mk.rule //\
             (S('$(BIN)/%: $(SRC)/%.cpp')//'$(CXX) $(CFLAGS) -o $@ $<')
+
+#######################################################################################
+
+
+class metaModule(pyModule):
+    def init_reqs(self):
+        super().init_reqs()
+        self.d.reqs // 'ply' // 'xxhash'
+
+    def init_vscode_settings(self):
+        super().init_vscode_settings()
+        self.d.vscode.settings.f11.value = ' make pep '
+        self.d.vscode.settings.f12.value = f' clear ; make '
+
+    def init_py(self):
+        super().init_py()
+        self.d.py // 'import os,sys,re'
