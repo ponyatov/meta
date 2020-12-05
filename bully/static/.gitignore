@@ -6,3 +6,5 @@ bootstrap.*
 leaflet.*
 images/layers*.png
 images/marker-*.png
+html5shiv.js
+respond.js

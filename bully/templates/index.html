@@ -3,36 +3,52 @@
 {% block body %}
 <!-- / <section:top> -->
 <!-- \ <section:mid> -->
-<TABLE id="layout">
-    <TR id="trhead">
-        <TD>
-            <TABLE id="trhead">
-                <TR>
-                    <TD id="logo">
-                        <A href="/admin/">
-                            <IMG src="/static/logo.png">
-                            </IMG>
-                        </A>
-                    </TD>
-                    <TD id="tdhead">
-                        <P>Министерство природных ресурсов и экологии Российской Федерации</P>
-                        <P>Федеральная служба по гидрометеорологии и мониторингу окружающей среды</P>
-                        <P>Федеральное государственное бюджетное учреждение</P>
-                        <P>Приволжское управление по гидрометеорологии<br>и мониторингу окружающей среды</P>
-                        <P>гидрометеорологический центр</P>
-                        
-                    </TD>
-                    <TD id="shortdate">
-                        {{shortdate}}
-                    </TD>
-                </TR>
-            </TABLE>
-        </TD>
-    </TR>
-    <TR id="trmaker">
+<DIV class="container-fluid">
+    <DIV class="row" id="trhead">
+        <DIV class="col-2" id="logo">
+            <A href="/admin/">
+                <IMG src="/static/logo.png">
+                </IMG>
+            </A>
+        </DIV>
+        <DIV class="col-8" id="tdhead">
+            <P>Министерство природных ресурсов и экологии Российской Федерации</P>
+            <P>Федеральная служба по гидрометеорологии и мониторингу окружающей среды</P>
+            <P>Федеральное государственное бюджетное учреждение</P>
+            <P>Приволжское управление по гидрометеорологии<br>и мониторингу окружающей среды</P>
+            <P>гидрометеорологический центр</P>
+            
+        </DIV>
+        <DIV class="col-2" id="shortdate">
+            {{date}}<br>{{time}}
+        </DIV>
+    </DIV>
+    <TABLE id="layout">
+        <TR id="trmaker">
+            <TD id="user">
+                <P>исполнитель: {{user.name}}</P>
+                <P>e-mail: &LT;<A href="mailto:{{user.email}}">{{user.email}}</A>&GT;</P>
+                <P>телефон: {{user.phone}}</P>
+                <P><HR>{{loc}}</P>
+                
+            </TD>
+            <TD id="version">
+                <H1>погодный бюллютень</H1>
+                
+            </TD>
+            <TD id="address">
+                <P>443125 г.Самара</P>
+                <P>ул.Ново-Садовая, 325</P>
+                <P>e-mail: &LT;<A href="mailto:cks@pogoda-sv.ru">cks@pogoda-sv.ru</A>&GT;</P>
+                <P>телефон +7 846 994 3678</P>
+                <P>+7 846 952 9909</P>
+                
+            </TD>
+            
+        </TR>
         
-    </TR>
-</TABLE>
+    </TABLE>
+</DIV>
 <!-- / <section:mid> -->
 <!-- \ <section:bot> -->
 {% endblock %}

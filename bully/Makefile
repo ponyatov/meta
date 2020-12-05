@@ -74,6 +74,7 @@ $(PY) $(PIP):
 js: \
 	static/jquery.js \
 	static/bootstrap.css static/bootstrap.js \
+	static/html5shiv.js static/respond.js \
 	static/leaflet.css static/leaflet.js
 
 JQUERY_VER = 3.5.1
@@ -86,6 +87,16 @@ static/bootstrap.css:
 	$(WGET) -O $@ https://bootswatch.com/3/darkly/bootstrap.min.css
 static/bootstrap.js:
 	$(WGET) -O $@ https://maxcdn.bootstrapcdn.com/bootstrap/$(BOOTSTRAP_VER)/js/bootstrap.min.js
+
+HTML2SHIV_VER = 3.7.3
+HTML2SHIV_URL = https://cdnjs.cloudflare.com/ajax/libs/html5shiv/$(HTML2SHIV_VER)/html5shiv-printshiv.min.js
+static/html5shiv.js:
+	$(WGET) -O $@ $(HTML2SHIV_URL)
+
+RESPOND_VER = 1.4.2
+RESPOND_URL = https://cdnjs.cloudflare.com/ajax/libs/respond.js/$(RESPOND_VER)/respond.min.js
+static/respond.js:
+	$(WGET) -O $@ $(RESPOND_URL)
 
 LEAFLET_VER = 1.7.1
 LEAFLET_ZIP = http://cdn.leafletjs.com/leaflet/v$(LEAFLET_VER)/leaflet.zip

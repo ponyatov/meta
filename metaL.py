@@ -629,7 +629,8 @@ class HTML(S):
     def __init__(self, V=None, inline=False, **kwargs):
         super().__init__(V, inline=inline)
         for i in kwargs:
-            self[i] = kwargs[i]
+            k = i if i != 'clazz' else 'class'
+            self[k] = kwargs[i]
 
     def file(self, to, depth=0):
         # <CLASS
@@ -652,6 +653,10 @@ class HTML(S):
         # if not self.inline:
         #     ret += '\n'
         return ret
+
+
+class DIV(HTML):
+    pass
 
 
 class TABLE(HTML):
@@ -700,6 +705,7 @@ class webModule(pyModule):
             (S('js: \\', pfx='.PHONY: js') //
                 "static/jquery.js \\" //
                 "static/bootstrap.css static/bootstrap.js \\" //
+                "static/html5shiv.js static/respond.js \\" //
                 "static/leaflet.css static/leaflet.js")
         self.d.mk.js // '' //\
             'JQUERY_VER = 3.5.1' //\
@@ -712,6 +718,16 @@ class webModule(pyModule):
                 "$(WGET) -O $@ https://bootswatch.com/3/darkly/bootstrap.min.css") //\
             (S("static/bootstrap.js:") //
                 "$(WGET) -O $@ https://maxcdn.bootstrapcdn.com/bootstrap/$(BOOTSTRAP_VER)/js/bootstrap.min.js")
+        self.d.mk.js // '' //\
+            'HTML2SHIV_VER = 3.7.3' //\
+            'HTML2SHIV_URL = https://cdnjs.cloudflare.com/ajax/libs/html5shiv/$(HTML2SHIV_VER)/html5shiv-printshiv.min.js' //\
+            (S('static/html5shiv.js:') //
+             "$(WGET) -O $@ $(HTML2SHIV_URL)")
+        self.d.mk.js // '' //\
+            'RESPOND_VER = 1.4.2' //\
+            'RESPOND_URL = https://cdnjs.cloudflare.com/ajax/libs/respond.js/$(RESPOND_VER)/respond.min.js' //\
+            (S('static/respond.js:') //
+             "$(WGET) -O $@ $(RESPOND_URL)")
         self.d.mk.js // '' //\
             'LEAFLET_VER = 1.7.1' //\
             'LEAFLET_ZIP = http://cdn.leafletjs.com/leaflet/v$(LEAFLET_VER)/leaflet.zip' //\
@@ -734,7 +750,8 @@ class webModule(pyModule):
         self.d.static // self.d.static.giti
         self.d.static.giti //\
             'jquery.js' // 'bootstrap.*' //\
-            'leaflet.*' // 'images/layers*.png' // 'images/marker-*.png'
+            'leaflet.*' // 'images/layers*.png' // 'images/marker-*.png' //\
+            'html5shiv.js' // 'respond.js'
         #
         self.d.static.css = cssFile('css')
         self.d.static // self.d.static.css
@@ -756,7 +773,12 @@ class webModule(pyModule):
                 '<meta charset="utf-8">' //
                 '<meta http-equiv="X-UA-Compatible" content="IE=edge">' //
                 '<meta name="viewport" content="width=device-width, initial-scale=1">' //
+                f'<!--title>{self}</title-->' //
                 '<link href="/static/bootstrap.css" rel="stylesheet">' //
+                (S('<!--[if lt IE 9]>', '<![endif]-->') //
+                    '<script src="/static/html5shiv.js"></script>' //
+                    '<script src="/static/respond.js"></script>'
+                 ) //
                 '<link rel="shortcut icon" href="/static/logo.png" type="image/png">' //
                 '<link href="/static/css.css" rel="stylesheet">' //
                 '{% block head %}{% endblock %}'
@@ -794,6 +816,8 @@ class djModule(webModule):
         self.init_dj_settings()
         self.init_dj_urls()
         self.init_dj_views()
+        self.init_dj_forms()
+        self.init_dj_models()
 
     def init_dj_urls(self):
         self.d.dj.urls = pyFile('urls')
@@ -807,18 +831,40 @@ class djModule(webModule):
              "path('', views.index, name='index')," //
              "path('admin/', admin.site.urls, name='admin'),")
 
+    def init_dj_models(self):
+        self.d.dj.models = pyFile('models')
+        self.d.dj // self.d.dj.models
+
+    def init_dj_forms(self):
+        self.d.dj.forms = pyFile('forms')
+        self.d.dj // self.d.dj.forms
+        self.d.dj.forms.top //\
+            'from django import forms' //\
+            'from .models import *'
+
     def init_dj_views(self):
         self.d.dj.views = pyFile('views')
         self.d.dj // self.d.dj.views
         self.d.dj.views.top //\
             'from django.http import HttpResponse, HttpResponseRedirect' //\
-            'from django.template import loader'
+            'from django.template import loader' //\
+            'import time' //\
+            'from .forms import *' //\
+            'from .models import *'
+        self.d.dj.views.index = Fn('index', ['request'])
+        self.d.dj.views.index.context = Section('context')
         self.d.dj.views.mid //\
-            (S('def index(request):') //
+            (self.d.dj.views.index //
              (S('if not request.user.is_authenticated:') //
               "return HttpResponseRedirect(f'/admin/login/?next={request.path}')") //
              "template = loader.get_template('index.html')" //
-             (S('context = {', '}')//'') //
+             S(f'form = {self}Form()') //
+             (S('context = {', '}') //
+              "'form':form," //
+              self.d.dj.views.index.context
+              # "'date':time.strftime('%d.%m.%y'),"//\
+              # "'time':time.strftime('%H:%M'),"
+              ) //
              "return HttpResponse(template.render(context, request))")
 
     def init_dj_settings(self):
@@ -851,6 +897,7 @@ class djModule(webModule):
               "'APP_DIRS' : True, # req for admin/login.html template" //
               (S("'OPTIONS'  : {", "}") //
                (S("'context_processors': [", "]") //
+                "'django.template.context_processors.debug'," //
                 "'django.template.context_processors.request'," //
                 "'django.contrib.auth.context_processors.auth'," //
                 "'django.contrib.messages.context_processors.messages',"
@@ -1082,21 +1129,32 @@ class Meta(Object):
 
 
 class Fn(Meta):
-    pass
-
-
-class rsFn(Fn):
-    def __init__(self, V, pfx=None, ret=None):
+    def __init__(self, V, args=[], ret=None, pfx=None):
         super().__init__(V)
-        self.pfx = S(pfx) if pfx else None
+        self.args = args
         self.ret = S(f' {ret} ') if ret else ''
+        self.pfx = S(pfx) if pfx else None
 
     def file(self, to, depth=0):
-        assert isinstance(to, rsFile)
-        ret = S(f'{to.tab*depth}fn {self.value}(){self.ret}{{', '}', pfx=self.pfx)
-        for j in self.nest:
-            ret // j
-        return ret.file(to, depth)
+        if isinstance(to, pyFile):
+            ret = ''
+            ret += f'def {self}('
+            if self.args:
+                ret += ','.join(self.args)
+            ret += '):\n' if self.nest else '): pass\n'
+            for j in self.nest:
+                ret += j.file(to, depth+1)
+            return ret
+        raise TypeError(to.head())
+
+
+# class rsFn(Fn):
+#     def file(self, to, depth=0):
+#         assert isinstance(to, rsFile)
+#         ret = S(f'{to.tab*depth}fn {self.value}(){self.ret}{{', '}', pfx=self.pfx)
+#         for j in self.nest:
+#             ret // j
+#         return ret.file(to, depth)
 
 
 class Control(Meta):
@@ -1644,17 +1702,20 @@ class Import(Meta):
 class Class(Meta):
     def __init__(self, V, sup=[]):
         super().__init__(V)
-        for s in sup:
-            self // s
+        self.sup = sup
 
     def file(self, to, depth=0):
         ret = f'class {self}'
-        if not self.nest:
-            ret += ': pass\n'
-        else:
+        if self.sup:
             ret += '('
-            ret += ','.join(map(lambda s: f'{s.value}', self.nest))
-            ret += '): pass\n'
+            ret += ','.join(map(lambda s: f'{s}', self.sup))
+            ret += '):'
+        if not self.nest:
+            ret += ' pass\n'
+        else:
+            ret += '\n'
+            for j in self.nest:
+                ret += j.file(to, depth+1)
         return ret
 
 
