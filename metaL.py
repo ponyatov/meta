@@ -232,7 +232,7 @@ class Module(Object):
 
 
 class mkFile(File):
-    def __init__(self, V='Makefile', ext='', comment='#',  tab='\t'):
+    def __init__(self, V='Makefile', ext='.mk', comment='#',  tab='\t'):
         super().__init__(V, ext, comment, tab)
 
 
@@ -355,7 +355,9 @@ class dirModule(Module):
             (S('"files.associations": {', '},') //
              self.d.vscode.settings.assoc)
         #
-        self.d.vscode.settings.mid // '"editor.tabSize": 4'
+        self.d.vscode.settings.mid //\
+            '"editor.tabSize": 4,' //\
+            '"workbench.tree.indent": "32",'
 
     def init_vscode_extensions(self):
         self.d.vscode.extensions = Section('extensions')
@@ -372,38 +374,40 @@ class dirModule(Module):
         self.d.giti // f'/{self}_??????.pdf'
 
     def init_mk(self):
-        self.d.mk = mkFile()
+        self.d.mk = mkFile(ext='')
         self.d // self.d.mk
         #
         self.d.mk.var = Section('var')
         self.d.mk //\
             (self.d.mk.var //
-             f'{"MODULE":<9} = $(notdir $(CURDIR))' //
-             f'{"OS":<9} = $(shell uname -s)' //
-             f'{"MACHINE":<9} = $(shell uname -m)' //
-             f'{"NOW":<9} = $(shell date +%d%m%y)' //
-             f'{"REL":<9} = $(shell git rev-parse --short=4 HEAD)'
+             f'{"MODULE":<9}  = $(notdir $(CURDIR))' //
+             f'{"OS":<9}  = $(shell uname -s)' //
+             f'{"MACHINE":<9}  = $(shell uname -m)' //
+             f'{"NOW":<9}  = $(shell date +%d%m%y)' //
+             f'{"REL":<9}  = $(shell git rev-parse --short=4 HEAD)'
              )
         #
         self.d.mk.dir = Section('dir')
         self.d.mk //\
             (self.d.mk.dir //
-             f'{"CWD":<9} = $(CURDIR)' //
-             f'{"DOC":<9} = $(CWD)/doc' //
-             f'{"BIN":<9} = $(CWD)/bin' //
-             f'{"SRC":<9} = $(CWD)/src' //
-             f'{"TMP":<9} = $(CWD)/tmp'
+             f'{"CWD":<9}  = $(CURDIR)' //
+             f'{"DOC":<9}  = $(CWD)/doc' //
+             f'{"BIN":<9}  = $(CWD)/bin' //
+             f'{"SRC":<9}  = $(CWD)/src' //
+             f'{"TMP":<9}  = $(CWD)/tmp'
              )
         #
         self.d.doc = Dir('doc')
         self.d // self.d.doc
         self.d.doc.giti = gitiFile()
         self.d.doc // self.d.doc.giti
-        self.d.doc.giti.mid // '*.pdf'
+        self.d.doc.giti.top // '*.pdf'
         #
         self.d.bin = Dir('bin')
         self.d // self.d.bin
-        self.d.bin // (gitiFile() // '*')
+        self.d.bin.giti = gitiFile()
+        self.d.bin // self.d.bin.giti
+        self.d.bin.giti.top // '*'
         #
         self.d.src = Dir('src')
         self.d // (self.d.src // gitiFile())
@@ -417,7 +421,7 @@ class dirModule(Module):
         self.d.mk.tool = Section('tool')
         self.d.mk //\
             (self.d.mk.tool //
-             f'{"WGET":<9} = wget -c')
+             f'{"WGET":<9}  = wget -c')
         #
         self.d.mk.obj = Section('obj')
         self.d.mk // self.d.mk.obj
@@ -550,10 +554,10 @@ class pyModule(dirModule):
     def init_mk(self):
         super().init_mk()
         self.d.mk.tool //\
-            f'{"PY":<9} = $(BIN)/python3' //\
-            f'{"PIP":<9} = $(BIN)/pip3' //\
-            f'{"PEP":<9} = $(BIN)/autopep8' //\
-            f'{"PYT":<9} = $(BIN)/pytest'
+            f'{"PY":<9}  = $(BIN)/python3' //\
+            f'{"PIP":<9}  = $(BIN)/pip3' //\
+            f'{"PEP":<9}  = $(BIN)/autopep8' //\
+            f'{"PYT":<9}  = $(BIN)/pytest'
         #
         self.d.mk.obj // f'{"S":<3} += $(MODULE).py'
         #
@@ -927,7 +931,9 @@ class emModule(dirModule):
         #
         self.d.fw = Dir('firmware')
         self.d // self.d.fw
-        self.d.fw // (gitiFile() // '*')
+        self.d.fw.giti = gitiFile()
+        self.d.fw // self.d.fw.giti
+        self.d.fw.giti.top // '*'
         #
         emModule.mixin_main(self)
 
@@ -939,7 +945,7 @@ class emModule(dirModule):
         self.d.src // self.d.src.c
         self.d.src.c //\
             f'#include <{self}.h>' //\
-            (S('void main() {', '}') //
+            (S('int main() {', '}') //
                 (S('while (true) {', '}'))
              ) //\
             (S('void _exit(int c) {', '}') //
@@ -966,25 +972,30 @@ class emModule(dirModule):
 
     def mixin_mk(self):
         self.d.mk.dir //\
-            f'{"FW":<9} = $(CWD)/firmware'
+            f'{"FW":<9}  = $(CWD)/firmware'
         self.d.mk.tool //\
-            f'{"HOSTCC":<9} = $(CC)' //\
-            f'{"CC":<9} = $(TARGET)-gcc' //\
-            f'{"HOSTCXX":<9} = $(CXX)' //\
-            f'{"CXX":<9} = $(TARGET)-g++' //\
-            f'{"LD":<9} = $(TARGET)-ld' //\
-            f'{"AS":<9} = $(TARGET)-as' //\
-            f'{"SIZE":<9} = $(TARGET)-size' //\
-            f'{"OBJDUMP":<9} = $(TARGET)-objdump' //\
-            f'{"GDB":<9} = $(TARGET)-gdb'
+            f'{"HOSTCC":<9}  = $(CC)' //\
+            f'{"CC":<9}  = $(TARGET)-gcc' //\
+            f'{"HOSTCXX":<9}  = $(CXX)' //\
+            f'{"CXX":<9}  = $(TARGET)-g++' //\
+            f'{"LD":<9}  = $(TARGET)-ld' //\
+            f'{"AS":<9}  = $(TARGET)-as' //\
+            f'{"SIZE":<9}  = $(TARGET)-size' //\
+            f'{"OBJDUMP":<9}  = $(TARGET)-objdump' //\
+            f'{"GDB":<9}  = $(TARGET)-gdb'
+        # CPU
+        self.d.cpu = Dir('cpu')
+        self.d // self.d.cpu
+        #
         self.d.mk.cfg.cflags = Section('cflags')
         self.d.mk.cfg // self.d.mk.cfg.cflags
         self.d.mk.cfg.cflags //\
-            'CFLAGS += -O0 -g3' //\
-            'CFLAGS += -I$(SRC)'
+            f'{"CFLAGS":<9} += -mcpu=$(CPU) $(THUMB)' //\
+            f'{"CFLAGS":<9} += -O0 -g3' //\
+            f'{"CFLAGS":<9} += -I$(SRC)'
         self.d.mk.obj //\
             f'{"OBJ":<3} += $(FW)/{self}.elf'
-        self.d.mk.all.target // '$(OBJ)'
+        # self.d.mk.all.target // '$(OBJ)'
         # self.d.mk.all.body //\
         #     f'$(MAKE) $(FW)/{self}.elf'
         self.d.mk.rule //\
@@ -1002,8 +1013,45 @@ class stmModule(emModule):
         stmModule.mixin_apt(self)
 
     def mixin_mk(self):
+        self.d.hw = Dir('hw')
+        self.d // self.d.hw
+        self.d.hw.pill030 = mkFile('pill030')
+        self.d.hw // self.d.hw.pill030
+        self.d.hw.pill030 // f'{"SoC":<9}  = STM32F030'
+        self.d.hw.pill103 = mkFile('pill103')
+        self.d.hw // self.d.hw.pill103
+        self.d.hw.pill103 // f'{"SoC":<9}  = STM32F103'
+        #
         self.d.mk.var //\
-            f'{"TARGET":<9} = arm-none-eabi'
+            f'{"HW":<9} ?= pill030' //\
+            f'{"include":<9}     hw/$(HW).mk' //\
+            f'{"include":<9}    cpu/$(SoC).mk'
+        #
+        self.d.cpu.cm = mkFile('cortex-m')
+        self.d.cpu.cm0 = mkFile('cortex-m0')
+        self.d.cpu.cm3 = mkFile('cortex-m3')
+        self.d.cpu.cm4 = mkFile('cortex-m4')
+        self.d.cpu // self.d.cpu.cm //\
+            self.d.cpu.cm0 // self.d.cpu.cm3 // self.d.cpu.cm4
+        self.d.cpu.cm //\
+            f'{"THUMB":<9}  = -mthumb' //\
+            f'{"TARGET":<9}  = arm-none-eabi'
+        self.d.cpu.cm0 //\
+            f'{"CPU":<9}  = cortex-m0' //\
+            f'{"include":<9}    cpu/cortex-m.mk'
+        self.d.cpu.cm3 //\
+            f'{"CPU":<9}  = cortex-m3' //\
+            f'{"include":<9}    cpu/cortex-m.mk'
+        self.d.cpu.cm4 //\
+            f'{"CPU":<9}  = cortex-m4' //\
+            f'{"include":<9}    cpu/cortex-m.mk'
+        #
+        self.d.cpu.STM32F030 = mkFile('STM32F030')
+        self.d.cpu // self.d.cpu.STM32F030
+        self.d.cpu.STM32F030 // 'include cpu/cortex-m0.mk'
+        self.d.cpu.STM32F103 = mkFile('STM32F103')
+        self.d.cpu // self.d.cpu.STM32F103
+        self.d.cpu.STM32F103 // 'include cpu/cortex-m3.mk'
 
     def mixin_apt(self):
         self.d.apt //\
@@ -1048,9 +1096,6 @@ class rsModule(dirModule):
         super().init_giti()
         self.d.giti.mid // '/target/' // '/Cargo.lock'
 
-    def init_rust(self):
-        self.init_cargo()
-
     def init_vscode_settings(self):
         super().init_vscode_settings()
         self.d.vscode.settings.watcher //\
@@ -1067,11 +1112,11 @@ class rsModule(dirModule):
     def init_mk(self):
         super().init_mk()
         self.d.mk.dir //\
-            f'{"CARGOBIN":<9} = $(HOME)/.cargo/bin'
+            f'{"CARGOBIN":<9}  = $(HOME)/.cargo/bin'
         self.d.mk.tool //\
-            f'{"RUSTUP":<9} = $(CARGOBIN)/rustup' //\
-            f'{"CARGO":<9} = $(CARGOBIN)/cargo' //\
-            f'{"RUSTC":<9} = $(CARGOBIN)/rustc'
+            f'{"RUSTUP":<9}  = $(CARGOBIN)/rustup' //\
+            f'{"CARGO":<9}  = $(CARGOBIN)/cargo' //\
+            f'{"RUSTC":<9}  = $(CARGOBIN)/rustc'
         self.d.mk.all.target // '$(S)'
         self.d.mk.all.body //\
             '$(CARGO) run $(MODULE).ini'
@@ -1102,23 +1147,6 @@ class rsModule(dirModule):
 '''
         self.d.readme // self.d.readme.rust
 
-
-# Rust embedded
-class rsemModule(rsModule):
-
-    def __init__(self, V=None):
-        super().__init__(V)
-        stmModule.mixin(self)
-
-    def init_rust(self):
-        super().init_rust()
-
-    def init_mk(self):
-        super().init_mk()
-        self.d.mk.all.body.drop()
-        self.d.mk.install.body //\
-            f'{"$(CARGO)":<9} {"install":<9} cargo-binutils'
-
     def init_cargo(self):
         self.d.cargo = File('Cargo', ext='.toml')
         self.d // self.d.cargo
@@ -1127,18 +1155,81 @@ class rsemModule(rsModule):
         self.d.cargo //\
             (self.d.cargo.package //
              '[package]' //
-             f'{"name":<9} = "{self:l}"' //
-             f'{"version":<9} = "0.0.1"' //
-             f'{"authors":<9} = ["{self.AUTHOR} <{self.EMAIL}>"]')
+             f'{"name":<21}  = "{self:l}"' //
+             f'{"version":<21}  = "0.0.1"' //
+             f'{"authors":<21}  = ["{self.AUTHOR} <{self.EMAIL}>"]')
         #
         self.d.cargo //\
-            f'{"edition":<9} = "2018"'
+            f'{"edition":<21}  = "2018"'
         #
         self.d.cargo.dependencies = Section('dependencies')
         self.d.cargo //\
             (self.d.cargo.dependencies //
              '[dependencies]' //
-             'lazy_static = ""')
+             f'{"lazy_static":<21}  = "*"')
+
+    def init_rust(self):
+        self.init_cargo()
+        #
+        self.d.src.main = rsFile('main')
+        self.d.src // self.d.src.main
+        self.d.src.main.main = Section('main')
+        self.d.src.main //\
+            (rsFn('main') // self.d.src.main.main)
+        self.d.src.main.top //\
+            'use std::env;'
+        self.d.src.main.main //\
+            (Section('args') //
+             'let argv: Vec<String> = env::args().collect();' //
+             'let argc = argv.len();' //
+             'for i in 0..argc { println!("argv[{}] = {:?}",i,argv[i]); }'
+             )
+
+
+# Rust embedded
+class rsemModule(rsModule):
+
+    def __init__(self, V=None):
+        super().__init__(V)
+        stmModule.mixin(self)
+        rsemModule.mixin(self)
+
+    def mixin(self):
+        rsemModule.mixin_mk(self)
+
+    def mixin_mk(self):
+        self.d.mk.tool //\
+            f'{"CC":<9}  = clang --target=$(TARGET)' //\
+            f'{"SIZE":<9}  = llvm-size'
+        self.d.mk.all.body //\
+            '$(CARGO) run $(MODULE).ini'
+
+    def init_apt(self):
+        super().init_apt()
+        self.d.apt // 'clang clang-tools'
+
+    def init_rust(self):
+        assert 1 == 2
+        super().init_rust()
+
+    def init_mk(self):
+        super().init_mk()
+        #
+        self.d.mk.all.body.drop()
+        self.d.mk.install.body //\
+            f'{"$(RUSTUP)":<9} {"component":<9} add llvm-tools-preview'
+        # f'{"$(CARGO)":<9} {"install":<9} cargo-binutils' //\
+
+    def init_cargo(self):
+        super().init_cargo()
+        self.d.cargo.dependencies //\
+            f'{"cargo-binutils":<21}  = "*"' //\
+            f'{"cortex-m":<21}  = "*"' //\
+            f'{"cortex-m-rt":<21}  = "*"' //\
+            f'{"cortex-m-semihosting":<21}  = "*"' //\
+            f'{"panic-halt":<21}  = "*"' //\
+            f'{"nb":<21}  = "*"' //\
+            f'{"embedded-hal":<21}  = "*"'
 
     def init_readme(self):
         super().init_readme()
@@ -1151,25 +1242,17 @@ class rsemModule(rsModule):
     * [The embedded Rust book](https://docs.rust-embedded.org/book/)
 """
 
+    def init_rust(self):
+        super().init_rust()
+
 
 # Rust server
 class rsrvModule(rsemModule):
 
     def init_rust(self):
         super().init_rust()
-        self.d.src.main = rsFile('main')
-        self.d.src // self.d.src.main
-        self.d.src.main.main = \
-            (rsFn('main') //
-             '//' //
-             'let argv: Vec<String> = env::args().collect();' //
-             'let argc = argv.len();' //
-             'for i in 0..argc { println!("argv[{}] = {:?}",i,argv[i]); }' //
-             '//' //
-             'hello::hello();'
-             )
-        self.d.src.main.top //\
-            'use std::env;'
+        self.d.src.main.main //\
+            'hello::hello();'
         self.d.src.main.top //\
             'mod hello;'
         self.d.src.main.bot //\
@@ -1333,7 +1416,7 @@ class exModule(dirModule):
 
     def init_mk(self):
         super().init_mk()
-        self.d.mk.tool // f'{"MIX":<9} = mix' // f'{"IEX":<9} = iex'
+        self.d.mk.tool // f'{"MIX":<9}  = mix' // f'{"IEX":<9}  = iex'
         self.d.mk.obj // f'{"S":<3} += mix.exs'
         self.d.mk.all.target // '$(S)'
         self.d.mk.all.body //\
@@ -1447,7 +1530,7 @@ class cModule(dirModule):
         super().init_mk()
         #
         self.d.mk.tool //\
-            f'{"CC":<9} = tcc'
+            f'{"CC":<9}  = tcc'
         #
         self.d.mk.cfg //\
             'CFLAGS += -O0 -g2'
@@ -1464,7 +1547,7 @@ class cppModule(cModule):
     def init_mk(self):
         super().init_mk()
         self.d.mk.tool //\
-            f'{"CXX":<9} = g++'
+            f'{"CXX":<9}  = g++'
         #
         self.d.mk.rule //\
             (S('$(BIN)/%: $(SRC)/%.cpp')//'$(CXX) $(CFLAGS) -o $@ $<')
