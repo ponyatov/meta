@@ -9,8 +9,6 @@ class thisModule(rsemModule):
 
 mod = thisModule()
 mod.TITLE = 'embedded Rust sample for stm32f130 blue pill'
-mod.ABOUT = """
-* https://www.youtube.com/watch?v=IEniVrjncdk
-"""
+mod.ABOUT = """"""
 
 sync()

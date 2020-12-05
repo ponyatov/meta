@@ -248,6 +248,12 @@ class iniFile(File):
         super().__init__(V, ext, comment)
 
 
+class gitiFile(File):
+    def __init__(self, V='', ext='.gitignore', comment='#'):
+        super().__init__(V, ext, comment)
+        self.bot // '!.gitignore'
+
+
 class dirModule(Module):
     def __init__(self, V=None):
         if not V:
@@ -374,7 +380,10 @@ class dirModule(Module):
             (self.d.mk.var //
              f'{"MODULE":<9} = $(notdir $(CURDIR))' //
              f'{"OS":<9} = $(shell uname -s)' //
-             f'{"MACHINE":<9} = $(shell uname -m)')
+             f'{"MACHINE":<9} = $(shell uname -m)' //
+             f'{"NOW":<9} = $(shell date +%d%m%y)' //
+             f'{"REL":<9} = $(shell git rev-parse --short=4 HEAD)'
+             )
         #
         self.d.mk.dir = Section('dir')
         self.d.mk //\
@@ -388,15 +397,22 @@ class dirModule(Module):
         #
         self.d.doc = Dir('doc')
         self.d // self.d.doc
-        self.d.doc // (File('.gitignore') // '*.pdf')
+        self.d.doc.giti = gitiFile()
+        self.d.doc // self.d.doc.giti
+        self.d.doc.giti.mid // '*.pdf'
+        #
         self.d.bin = Dir('bin')
         self.d // self.d.bin
-        self.d.bin // (File('.gitignore') // '*')
+        self.d.bin // (gitiFile() // '*')
+        #
         self.d.src = Dir('src')
-        self.d // (self.d.src // File('.gitignore'))
+        self.d // (self.d.src // gitiFile())
+        #
         self.d.tmp = Dir('tmp')
         self.d // self.d.tmp
-        self.d.tmp // (File('.gitignore') // '*')
+        self.d.tmp.giti = gitiFile()
+        self.d.tmp // self.d.tmp.giti
+        self.d.tmp.giti.top // '*'
         #
         self.d.mk.tool = Section('tool')
         self.d.mk //\
@@ -405,20 +421,25 @@ class dirModule(Module):
         #
         self.d.mk.obj = Section('obj')
         self.d.mk // self.d.mk.obj
+        self.d.mk.obj.c = Section('c')
+        self.d.mk.obj // self.d.mk.obj.c
+        self.d.mk.obj.h = Section('h')
+        self.d.mk.obj // self.d.mk.obj.h
+        self.d.mk.obj.s = Section('s')
+        self.d.mk.obj // self.d.mk.obj.s
         #
         self.d.mk.cfg = Section('cfg')
         self.d.mk // self.d.mk.cfg
         #
-        self.d.mk.alls = Section('all')
-        self.d.mk // self.d.mk.alls
         self.d.mk.all = Section('all')
-        self.d.mk.alls // self.d.mk.all
+        self.d.mk // self.d.mk.all
         self.d.mk.all.target = S(' ', inline=True)
-        self.d.mk.all.body = S()//''
+        self.d.mk.all.body = Section('body')
         self.d.mk.all //\
             (S('all:', pfx='.PHONY: all', inline=True) //
              self.d.mk.all.target) //\
-            (self.d.mk.all.body)
+            (S() // '' //
+             self.d.mk.all.body)
         #
         self.d.mk.rule = Section('rules')
         self.d.mk // self.d.mk.rule
@@ -455,8 +476,9 @@ class dirModule(Module):
              'git pull -v')
         self.d.mk.merge //\
             (S('release:', pfx='.PHONY: release') //
-             'git tag $(TODAY)' //
-             'git push -v --tags')
+             'git tag $(NOW)-$(REL)' //
+             'git push -v && git push -v --tags' //
+             '$(MAKE) shadow')
 
     def init_apt(self):
         self.d.apt = File('apt.txt')
@@ -464,7 +486,7 @@ class dirModule(Module):
         self.d.apt // 'git make wget'
 
     def init_giti(self):
-        self.d.giti = File('.gitignore')
+        self.d.giti = gitiFile()
         self.d // self.d.giti
         self.d.giti.top // '*~' // '*.swp' // '*.log'
 
@@ -533,7 +555,7 @@ class pyModule(dirModule):
             f'{"PEP":<9} = $(BIN)/autopep8' //\
             f'{"PYT":<9} = $(BIN)/pytest'
         #
-        self.d.mk.obj // 'S += $(MODULE).py'
+        self.d.mk.obj // f'{"S":<3} += $(MODULE).py'
         #
         self.d.mk.all.target // '$(PY) $(MODULE).py'
         self.d.mk.all.body // '$^'
@@ -703,7 +725,7 @@ class webModule(pyModule):
     def mixin_static(self):
         self.d.static = Dir('static')
         self.d // self.d.static
-        self.d.static.giti = File('.gitignore')
+        self.d.static.giti = gitiFile()
         self.d.static // self.d.static.giti
         self.d.static.giti //\
             'jquery.js' // 'bootstrap.*' //\
@@ -718,7 +740,7 @@ class webModule(pyModule):
     def mixin_templates(self):
         self.d.templates = Dir('templates')
         self.d // self.d.templates
-        self.d.templates // File('.gitignore')
+        self.d.templates // gitiFile()
         #
         self.d.templates.all = htmlFile('all')
         self.d.templates // self.d.templates.all
@@ -899,12 +921,44 @@ if __name__ == '__main__':
 
 class emModule(dirModule):
     def mixin(self):
+        emModule.mixin_giti(self)
         emModule.mixin_mk(self)
         emModule.mixin_apt(self)
         #
         self.d.fw = Dir('firmware')
         self.d // self.d.fw
-        self.d.fw // (File('.gitignore') // '*')
+        self.d.fw // (gitiFile() // '*')
+        #
+        emModule.mixin_main(self)
+
+    def mixin_giti(self):
+        self.d.giti.mid // '*.o'
+
+    def mixin_main(self):
+        self.d.src.c = cFile(f'{self}')
+        self.d.src // self.d.src.c
+        self.d.src.c //\
+            f'#include <{self}.h>' //\
+            (S('void main() {', '}') //
+                (S('while (true) {', '}'))
+             ) //\
+            (S('void _exit(int c) {', '}') //
+                S('while (true) {', '}'))
+        self.d.mk.obj.c // f'{"C":<3} += $(SRC)/{self}.c'
+        #
+        self.d.src.h = hFile(f'{self}')
+        self.d.src // self.d.src.h
+        self.d.src.h.top //\
+            f'#ifndef _H_{self:u}' //\
+            f'#define _H_{self:u}'
+        self.d.src.h.top //\
+            '#include <stdint.h>' //\
+            '#include <stdbool.h>'
+        self.d.src.h.bot //\
+            f'#endif // _H_{self:u}'
+        self.d.mk.obj.h // f'{"H":<3} += $(SRC)/{self}.h'
+        #
+        self.d.mk.obj.s // f'{"S":<3} += $(C) $(H)'
 
     def mixin_apt(self):
         self.d.apt //\
@@ -921,12 +975,24 @@ class emModule(dirModule):
             f'{"LD":<9} = $(TARGET)-ld' //\
             f'{"AS":<9} = $(TARGET)-as' //\
             f'{"SIZE":<9} = $(TARGET)-size' //\
+            f'{"OBJDUMP":<9} = $(TARGET)-objdump' //\
             f'{"GDB":<9} = $(TARGET)-gdb'
-        self.d.mk.all.body //\
-            f'$(MAKE) $(FW)/{self}.elf'
+        self.d.mk.cfg.cflags = Section('cflags')
+        self.d.mk.cfg // self.d.mk.cfg.cflags
+        self.d.mk.cfg.cflags //\
+            'CFLAGS += -O0 -g3' //\
+            'CFLAGS += -I$(SRC)'
+        self.d.mk.obj //\
+            f'{"OBJ":<3} += $(FW)/{self}.elf'
+        self.d.mk.all.target // '$(OBJ)'
+        # self.d.mk.all.body //\
+        #     f'$(MAKE) $(FW)/{self}.elf'
         self.d.mk.rule //\
-            (S('$(FW)/{self}.elf: $(SRC)/main.c:')//\
-            '')
+            (S(f'$(FW)/{self}.elf: $(C) $(H) Makefile') //
+             '$(CC) $(CFLAGS) -o $@ $(C)' //
+             '$(SIZE) $@' //
+             '$(OBJDUMP) -x $@ > $@.objdump'
+             )
 
 
 class stmModule(emModule):
@@ -1167,7 +1233,7 @@ class exModule(dirModule):
         self.d.src // self.d.src.web
         self.d.src.router = exFile('router')
         self.d.src.web // self.d.src.router
-        self.d.mk.obj // f'S += src/web/{self.d.src.router}'
+        self.d.mk.obj // f'{"S":<3} += src/web/{self.d.src.router}'
         self.d.src.router //\
             (S('defmodule Web.Router do', 'end') //
              'require Logger' //
@@ -1225,7 +1291,7 @@ class exModule(dirModule):
              'require Logger' //
              self.d.src.ex.module //
              (S('def hello do', 'end')//':world'))
-        self.d.mk.obj // f'S += src/{self:l}.ex'
+        self.d.mk.obj // f'{"S":<3} += src/{self:l}.ex'
 
     def init_elixir_mix(self):
         self.d.mix = exsFile('mix')
@@ -1268,7 +1334,7 @@ class exModule(dirModule):
     def init_mk(self):
         super().init_mk()
         self.d.mk.tool // f'{"MIX":<9} = mix' // f'{"IEX":<9} = iex'
-        self.d.mk.obj // 'S += mix.exs'
+        self.d.mk.obj // f'{"S":<3} += mix.exs'
         self.d.mk.all.target // '$(S)'
         self.d.mk.all.body //\
             '$(MIX)  format $(S)' //\
@@ -1350,6 +1416,11 @@ class exModule(dirModule):
 class cFile(File):
     def __init__(self, V, ext='.c', comment='/*'):
         super().__init__(V, ext, comment)
+
+
+class hFile(cFile):
+    def __init__(self, V, ext='.h'):
+        super().__init__(V, ext)
 
 
 class cppFile(cFile):
