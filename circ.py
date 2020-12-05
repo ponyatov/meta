@@ -2,7 +2,7 @@
 from metaL import *
 
 
-class thisModule(metaModule):
+class thisModule(circularModule):
     def init_vscode_settings(self):
         super().init_vscode_settings()
         self.d.vscode.settings.assoc // '"./do": "python",'

@@ -2,7 +2,7 @@
 from metaL import *
 
 
-class thisModule(metaModule):
+class thisModule(circularModule):
     def __init__(self, V=None):
         super().__init__(V)
 

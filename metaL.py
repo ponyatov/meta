@@ -1312,7 +1312,30 @@ class cppModule(cModule):
 #######################################################################################
 
 
-class metaModule(pyModule):
+class Import(Meta):
+    def file(self, to, depth=0):
+        return f'import {self}\n'
+
+
+class Class(Meta):
+    def __init__(self, V, sup=[]):
+        super().__init__(V)
+        for s in sup:
+            self // s
+
+    def file(self, to, depth=0):
+        ret = f'class {self}'
+        if not self.nest:
+            ret += ': pass\n'
+        else:
+            ret += '('
+            ret += ','.join(map(lambda s: f'{s.value}', self.nest))
+            ret += '): pass\n'
+        return ret
+
+
+class circularModule(pyModule):
+
     def init_reqs(self):
         super().init_reqs()
         self.d.reqs // 'ply' // 'xxhash'
@@ -1324,4 +1347,30 @@ class metaModule(pyModule):
 
     def init_py(self):
         super().init_py()
-        self.d.py // 'import os,sys,re'
+        #
+        self.d.py.imports = Section('imports')
+        self.d.py // self.d.py.imports
+        for i in ['os', 'sys', 're']:
+            self.d.py.imports // Import(i)
+        #
+        self.c = Section('classtree')
+        #
+        self.d.py.object = Section('executable graph object')
+        self.d.py // self.d.py.object
+        self.c.object = Class('Object')
+        self.d.py.object // self.c.object
+        #
+        self.d.py.primitive = Section('primitives')
+        self.d.py // self.d.py.primitive
+        self.c.primitive = Class('Primitive', [self.c.object])
+        self.d.py.primitive // self.c.primitive
+        self.c.name = Class('Name', [self.c.primitive])
+        self.d.py.primitive // self.c.name
+        self.c.string = Class('String', [self.c.primitive])
+        self.d.py.primitive // self.c.string
+        self.c.number = Class('Number', [self.c.primitive])
+        self.d.py.primitive // self.c.number
+        self.c.integer = Class('Integer', [self.c.number])
+        self.d.py.primitive // self.c.integer
+        self.c.hex = Class('Hex', [self.c.integer])
+        self.d.py.primitive // self.c.hex
