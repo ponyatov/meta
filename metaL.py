@@ -929,6 +929,7 @@ class emModule(dirModule):
         emModule.mixin_giti(self)
         emModule.mixin_mk(self)
         emModule.mixin_apt(self)
+        emModule.mixin_vscode_extensions(self)
         #
         self.d.fw = Dir('firmware')
         self.d // self.d.fw
@@ -940,6 +941,13 @@ class emModule(dirModule):
 
     def mixin_giti(self):
         self.d.giti.mid // '*.o'
+
+    def init_vscode_extensions(self):
+        super().init_vscode_extensions()
+        emModule.mixin_vscode_extensions(self)
+
+    def mixin_vscode_extensions(self):
+        self.d.vscode.extensions // '"marus25.cortex-debug",'
 
     def mixin_main(self):
         self.d.src.c = cFile(f'{self}')
