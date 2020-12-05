@@ -243,6 +243,11 @@ class jsonFile(File):
 #######################################################################################
 
 
+class iniFile(File):
+    def __init__(self, V, ext='.ini', comment='#'):
+        super().__init__(V, ext, comment)
+
+
 class dirModule(Module):
     def __init__(self, V=None):
         if not V:
@@ -419,13 +424,14 @@ class dirModule(Module):
         self.d.mk // self.d.mk.rule
         #
         self.d.mk.install = Section('install')
-        self.d.mk.install.body = Section('install')
+        self.d.mk.install.body = Section('body')
+        self.d.mk.install.post = Section('post')
         self.d.mk.update = Section('update')
         self.d.mk //\
             (self.d.mk.install //
              (S('install: $(OS)_install', pfx='.PHONY: install') //
               self.d.mk.install.body //
-              '$(MAKE) update') //
+              self.d.mk.install.post) //
              (S('update: $(OS)_update', pfx='.PHONY: update') //
               self.d.mk.update) //
              (S('$(OS)_install $(OS)_update:', pfx='.PHONY: $(OS)_install $(OS)_update') //
@@ -950,13 +956,14 @@ class rsModule(dirModule):
             f'{"RUSTUP":<9} = $(CARGOBIN)/rustup' //\
             f'{"CARGO":<9} = $(CARGOBIN)/cargo' //\
             f'{"RUSTC":<9} = $(CARGOBIN)/rustc'
-        self.d.mk.all.target // '$(S)' // '$(MODULE).ini'
+        self.d.mk.all.target // '$(S)'
         self.d.mk.all.body //\
             '$(CARGO) run $(MODULE).ini'
         self.d.mk.install.body //\
             '$(MAKE)   $(RUSTUP)' //\
             '$(RUSTUP) update' //\
-            '$(RUSTUP) component add rustfmt' //\
+            '$(RUSTUP) component add rustfmt'
+        self.d.mk.install.post //\
             '$(CARGO)  build'
         self.d.mk.update //\
             '$(RUSTUP) update'
@@ -988,7 +995,9 @@ class rsemModule(rsModule):
 
     def init_apt(self):
         super().init_apt()
-        self.d.apt // 'gdb-arm-none-eabi'
+        self.d.apt //\
+            'gdb-arm-none-eabi' //\
+            'stlink-tools stlink-gui'
 
     def init_cargo(self):
         self.d.cargo = File('Cargo', ext='.toml')
@@ -1043,10 +1052,6 @@ class rsrvModule(rsemModule):
         self.d.src.main.bot //\
             self.d.src.main.main
 
-
-class iniFile(File):
-    def __init__(self, V, ext='.ini', comment='#'):
-        super().__init__(V, ext, comment)
 
 #######################################################################################
 
