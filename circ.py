@@ -84,21 +84,15 @@ mod.ABOUT = """
   * [Distilled `metaL`](https://www.notion.so/metalang/Distilled-metaL-SICP-chapter-4-237378d385024f899e5a24597da7a19d)
   * [глава 4 Металингвистическая абстракция](https://www.notion.so/metalang/4-eb7dfcf3dbb04e6eb8015337af850aab)
     (частичный перевод с адаптацией)
+
+## Language Ideas Promo
+
+* provide a light environment for **metaprogramming by code generation**
+  * `metaL` is a special language for writing programs that write other programs (in Python, Rust,.. as *target languages*)
+    * provide abilities to *work with arbitrary source code* (parsing, modification, and synthesis)
+* `metaL` is not a programming language
+  * `metaL` **is a method of programming** in Python (or any other language you prefer: JS, PHP,...)
+    * write scripts which generates your *target code*
 """
-
-# ## Language Ideas Promo
-
-# * provide a light environment for **metaprogramming by code generation**
-#   * `metaL` is a special language for writing programs that write other programs (in C & Python as *target languages*)
-
-# ## `metaL` is not a programming language
-
-# `metaL` **is a method of programming** in Python (or any other language you prefer: JS, PHP,...)
-
-# """
-
-# mod.d.giti.bot //\
-#     '/circ/' //\
-#     '/SCADA/'
 
 sync()
