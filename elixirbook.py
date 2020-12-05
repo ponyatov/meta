@@ -12,26 +12,40 @@ class texModule(dirModule):
         super().__init__(V)
         self.init_tex()
 
+    def init_apt(self):
+        super().init_apt()
+        self.d.apt //\
+            'texlive-latex-extra gtexlive-extra-utils' //\
+            'graphviz ghostscript'
+
     def init_mk(self):
         super().init_mk()
         self.d.mk.tool //\
             f'{"LATEX":<9} = pdflatex -halt-on-error --output-dir=$(TMP)'
         self.d.mk.obj //\
             f'TEX += tex/{self}.tex tex/header.tex'
-        self.d.mk.all.body // '$(MAKE) pdf'
+        self.d.mk.all.body // f'$(MAKE) $(DOC)/{self}.pdf'
+        self.d.mk.var // f'{"TODAY":<9} = $(shell date +%d%m%y)'
         self.d.mk.alls //\
-            (S(f'pdf: $(DOC)/{self}.pdf', pfx='.PHONY: pdf')) //\
+            (S(f'pdf: $(DOC)/{self}.pdf', pfx='.PHONY: pdf') //
+             (S('gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen \\') //
+              '-dNOPAUSE -dQUIET -dBATCH \\' //
+              f'-sOutputFile=$(MODULE)_$(TODAY).pdf $<')) //\
             (S(f'$(DOC)/{self}.pdf: $(TMP)/{self}.pdf') //
                 'cp $< $@') //\
-            (S(f'$(TMP)/{self}.pdf: $(TEX)') //
-                f'cd tex ; $(LATEX) {self}')
+            (S(f'$(TMP)/{self}.pdf: $(TEX) $(FIG)') //
+                f'clear ; cd tex ; $(LATEX) {self}')
+        self.d.mk.all //\
+            (S('tmp/%.pdf: tex/%.dot') //
+                'dot -Tpdf -o $@.crop $<' //
+                'pdfcrop $@.crop $@'
+             )
 
     def init_vscode_extensions(self):
         super().init_vscode_extensions()
         self.d.vscode.extensions //\
             '"james-yu.latex-workshop",' //\
             '"yzane.markdown-pdf",'
-            # '"tomoki1207.pdf",'
 
     def init_tex(self):
         self.d.tex = Dir('tex')
@@ -57,9 +71,9 @@ class texModule(dirModule):
         self.d.tex.header // r"""
 % xcolor fixes
 \usepackage{xcolor}
-\definecolor{red  }{rgb}{0.3, 0 , 0 }	% G
-\definecolor{green}{rgb}{ 0 ,0.3, 0 }	% G
-\definecolor{blue }{rgb}{ 0 , 0 ,0.3}	% B
+\definecolor{red  }{rgb}{0.3, 0 , 0 } % G
+\definecolor{green}{rgb}{ 0 ,0.3, 0 } % G
+\definecolor{blue }{rgb}{ 0 , 0 ,0.3} % B
 """
         self.d.tex.header // r"""
 % Cyrillization
@@ -68,6 +82,11 @@ class texModule(dirModule):
 %% \usepackage[cp1251]{inputenc}
 \usepackage[english,russian]{babel}
 \usepackage{indentfirst}        
+"""
+        self.d.tex.header // r"""
+% graphics
+\usepackage[pdftex]{graphicx}
+\newcommand{\fig}[2]{\noindent\includegraphics[#2]{#1}}
 """
         self.d.tex.header // r"""
 % misc
@@ -98,10 +117,15 @@ class texModule(dirModule):
         \ \\
         
         \thedate
-"""//\
+
+        \begin{flushright}
+            \fig{elixirlogo.png}{height=.35\textheight}
+        \end{flushright}
+""" //
 
              r'\tableofcontents' //
-             r'\input{intro}'
+             r'\input{intro}' //
+             r'\input{bib}'
              )
 
 
@@ -117,6 +141,17 @@ mod.ABOUT = """
 черновик книги
 """
 
-mod.d.mk.obj // 'TEX += tex/intro.tex'
+mod.d.mk.obj // 'FIG += tmp/stack.pdf'
+
+mod.d.tex.header //\
+    r'\newcommand{\phx}{\texttt{Phoenix}}' //\
+    r'\newcommand{\ex}{\texttt{Elixir}}' //\
+    r'\newcommand{\erl}{\texttt{Erlang}}' //\
+    r'\newcommand{\otp}{\texttt{OTP}}' //\
+    r'\newcommand{\beam}{\texttt{BEAM}}'
+
+mod.d.mk.obj //\
+    'TEX += tex/intro.tex' //\
+    'TEX += tex/bib.tex'
 
 sync()

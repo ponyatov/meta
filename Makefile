@@ -18,6 +18,7 @@ S += FORTH.py
 S += circ.py
 S += meteo.py
 S += elixirbook.py
+S += incremento.py
 #S
 
 .PHONY: pep
@@ -44,6 +45,9 @@ meteo: $(PY) $(S)
 
 elixirbook: $(PY) $(S)
 	$(PY) elixirbook.py
+
+incremento: $(PY) $(S)
+	$(PY) incremento.py
 #M
 
 $(PY) $(PIP):

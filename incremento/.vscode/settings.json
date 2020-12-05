@@ -13,7 +13,7 @@
         "sequence": [
             "workbench.action.files.saveAll",
             {"command": "workbench.action.terminal.sendSequence","args": {"text":
-                "\u000D make pep \u000D"
+                "\u000Dclear;make\u000D"
             }}]
     },
     {
@@ -21,7 +21,7 @@
         "sequence": [
             "workbench.action.files.saveAll",
             {"command": "workbench.action.terminal.sendSequence","args": {"text":
-                "\u000D clear ; make incremento \u000D"
+                "\u000Dclear;make\u000D"
             }}]
     },
 ],
@@ -44,7 +44,6 @@
     /* \ <section:assoc> */
     "**/*.py": "python",
     "requirements.*": "config",
-    ./do": "python",
     /* / <section:assoc> */
 },
 "editor.tabSize": 4

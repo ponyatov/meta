@@ -356,6 +356,10 @@ class dirModule(Module):
                  '"tabnine.tabnine-vscode",' //
                  self.d.vscode.extensions)))
 
+    def init_giti(self):
+        super().init_giti()
+        self.d.giti // f'/{self}_??????.pdf'
+
     def init_mk(self):
         self.d.mk = mkFile()
         self.d // self.d.mk
@@ -429,19 +433,24 @@ class dirModule(Module):
              )
         #
         self.d.mk.merge = Section('merge')
-        self.d.mk // self.d.mk.merge //\
+        self.d.mk // self.d.mk.merge
+        self.d.mk.merge //\
+            'MERGE  = Makefile README.md apt.txt .gitignore .vscode $(S)'
+        self.d.mk.merge //\
             (S('main:', pfx='.PHONY: main') //
              'git push -v' //
              'git checkout $@' //
              'git pull -v' //
-             'git checkout shadow -- $(MERGE)') //\
+             'git checkout shadow -- $(MERGE)')
+        self.d.mk.merge //\
             (S('shadow:', pfx='.PHONY: shadow') //
              'git pull -v' //
              'git checkout $@' //
              'git pull -v')
-
         self.d.mk.merge //\
-            'MERGE  = Makefile README.md apt.txt .gitignore .vscode $(S)'
+            (S('release:', pfx='.PHONY: release') //
+             'git tag $(TODAY)' //
+             'git push -v --tags')
 
     def init_apt(self):
         self.d.apt = File('apt.txt')
