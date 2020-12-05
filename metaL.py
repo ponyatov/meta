@@ -897,6 +897,56 @@ if __name__ == '__main__':
 #######################################################################################
 
 
+class emModule(dirModule):
+    def mixin(self):
+        emModule.mixin_mk(self)
+        emModule.mixin_apt(self)
+        #
+        self.d.fw = Dir('firmware')
+        self.d // self.d.fw
+        self.d.fw // (File('.gitignore') // '*')
+
+    def mixin_apt(self):
+        self.d.apt //\
+            'putty'
+
+    def mixin_mk(self):
+        self.d.mk.dir //\
+            f'{"FW":<9} = $(CWD)/firmware'
+        self.d.mk.tool //\
+            f'{"HOSTCC":<9} = $(CC)' //\
+            f'{"CC":<9} = $(TARGET)-gcc' //\
+            f'{"HOSTCXX":<9} = $(CXX)' //\
+            f'{"CXX":<9} = $(TARGET)-g++' //\
+            f'{"LD":<9} = $(TARGET)-ld' //\
+            f'{"AS":<9} = $(TARGET)-as' //\
+            f'{"SIZE":<9} = $(TARGET)-size' //\
+            f'{"GDB":<9} = $(TARGET)-gdb'
+        self.d.mk.all.body //\
+            f'$(MAKE) $(FW)/{self}.elf'
+        self.d.mk.rule //\
+            (S('$(FW)/{self}.elf: $(SRC)/main.c:')//\
+            '')
+
+
+class stmModule(emModule):
+    def mixin(self):
+        emModule.mixin(self)
+        stmModule.mixin_mk(self)
+        stmModule.mixin_apt(self)
+
+    def mixin_mk(self):
+        self.d.mk.var //\
+            f'{"TARGET":<9} = arm-none-eabi'
+
+    def mixin_apt(self):
+        self.d.apt //\
+            'gcc-arm-none-eabi gdb-arm-none-eabi openocd' //\
+            'stlink-tools stlink-gui'
+
+#######################################################################################
+
+
 class rsFile(File):
     def __init__(self, V, ext='.rs', comment='//'):
         super().__init__(V, ext, comment)
@@ -990,14 +1040,18 @@ class rsModule(dirModule):
 # Rust embedded
 class rsemModule(rsModule):
 
+    def __init__(self, V=None):
+        super().__init__(V)
+        stmModule.mixin(self)
+
     def init_rust(self):
         super().init_rust()
 
-    def init_apt(self):
-        super().init_apt()
-        self.d.apt //\
-            'gdb-arm-none-eabi' //\
-            'stlink-tools stlink-gui'
+    def init_mk(self):
+        super().init_mk()
+        self.d.mk.all.body.drop()
+        self.d.mk.install.body //\
+            f'{"$(CARGO)":<9} {"install":<9} cargo-binutils'
 
     def init_cargo(self):
         self.d.cargo = File('Cargo', ext='.toml')
@@ -1023,9 +1077,12 @@ class rsemModule(rsModule):
     def init_readme(self):
         super().init_readme()
         self.d.readme.rust // """
-### Rust embedded
+### embedded Rust
 
 * [Rust Lang Embedded - Установка и пример (STM32F103C8T6)](https://www.youtube.com/watch?v=IEniVrjncdk)
+* https://docs.rust-embedded.org/
+    * [The Discovery book](https://docs.rust-embedded.org/discovery/)
+    * [The embedded Rust book](https://docs.rust-embedded.org/book/)
 """
 
 
