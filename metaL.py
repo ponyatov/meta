@@ -912,75 +912,22 @@ class rsFn(Fn):
         return ret.file(to, depth)
 
 
+# Rust generic
 class rsModule(dirModule):
     def __init__(self, V=None):
         super().__init__(V)
         self.init_rust()
 
-    def init_rust(self):
-        self.init_cargo()
-        self.d.src.main = rsFile('main')
-        self.d.src // self.d.src.main
-        self.d.src.main.main = \
-            (rsFn('main') //
-             '//' //
-             'let argv: Vec<String> = env::args().collect();' //
-             'let argc = argv.len();' //
-             'for i in 0..argc { println!("argv[{}] = {:?}",i,argv[i]); }' //
-             '//' //
-             'hello::hello();'
-             )
-        self.d.src.main.top //\
-            'use std::env;'
-        self.d.src.main.top //\
-            'mod hello;'
-        self.d.src.main.bot //\
-            self.d.src.main.main
+    def init_apt(self):
+        super().init_apt()
+        self.d.apt // 'curl'
 
     def init_giti(self):
         super().init_giti()
         self.d.giti.mid // '/target/' // '/Cargo.lock'
 
-    def init_apt(self):
-        super().init_apt()
-        self.d.apt // 'curl'
-
-    def init_readme(self):
-        super().init_readme()
-        self.d.readme.rust = S('### Rust', pfx='')
-        self.d.readme.rust // '''
-* [aleksey.kladov](https://www.youtube.com/playlist?list=PLlb7e2G7aSpTfhiECYNI2EZ1uAluUqE_e)
-    * [1. Введение (Программирование на Rust)](https://www.youtube.com/watch?v=Oy_VYovfWyo)
-    * [2. Время жизни, ADT. Программирование на Rust (весна 2019)](https://www.youtube.com/watch?v=WV-m7xRlXMs)
-
-* [Rust CS196 FA20](https://www.youtube.com/playlist?list=PLddc343N7YqhSPMjlCJa1gRDt4CzjiMYZ)
-    * [Welcome to 196! - CS196 FA20](https://www.youtube.com/watch?v=J__JvfNuknU&list=PLddc343N7YqhSPMjlCJa1gRDt4CzjiMYZ&index=1&t=795s)
-    * [Rust 1 - Lecture 17 - CS196 FA20](https://www.youtube.com/watch?v=ac7AOtkQMx4)
-    * [Rust 2 - Lecture 18 - CS196 FA20](https://www.youtube.com/watch?v=-SKih0Bu7l4)
-'''
-        self.d.readme // self.d.readme.rust
-
-    def init_mk(self):
-        super().init_mk()
-        self.d.mk.dir //\
-            f'{"CARGOBIN":<9} = $(HOME)/.cargo/bin'
-        self.d.mk.tool //\
-            f'{"RUSTUP":<9} = $(CARGOBIN)/rustup' //\
-            f'{"CARGO":<9} = $(CARGOBIN)/cargo' //\
-            f'{"RUSTC":<9} = $(CARGOBIN)/rustc'
-        self.d.mk.all.target // '$(S)' // '$(MODULE).ini'
-        self.d.mk.all.body //\
-            '$(CARGO) run $(MODULE).ini'
-        self.d.mk.install //\
-            '$(MAKE)   $(RUSTUP)' //\
-            '$(RUSTUP) update' //\
-            '$(RUSTUP) component add rustfmt' //\
-            '$(CARGO)  build'
-        self.d.mk.update //\
-            '$(RUSTUP) update'
-        self.d.mk.inst //\
-            (S('$(RUSTUP) $(CARGO) $(RUSTC):') //
-             "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh")
+    def init_rust(self):
+        self.init_cargo()
 
     def init_vscode_settings(self):
         super().init_vscode_settings()
@@ -994,6 +941,54 @@ class rsModule(dirModule):
         self.d.vscode.extensions //\
             '"bungcip.better-toml",' //\
             '"rust-lang.rust",'
+
+    def init_mk(self):
+        super().init_mk()
+        self.d.mk.dir //\
+            f'{"CARGOBIN":<9} = $(HOME)/.cargo/bin'
+        self.d.mk.tool //\
+            f'{"RUSTUP":<9} = $(CARGOBIN)/rustup' //\
+            f'{"CARGO":<9} = $(CARGOBIN)/cargo' //\
+            f'{"RUSTC":<9} = $(CARGOBIN)/rustc'
+        self.d.mk.all.target // '$(S)' // '$(MODULE).ini'
+        self.d.mk.all.body //\
+            '$(CARGO) run $(MODULE).ini'
+        self.d.mk.install.body //\
+            '$(MAKE)   $(RUSTUP)' //\
+            '$(RUSTUP) update' //\
+            '$(RUSTUP) component add rustfmt' //\
+            '$(CARGO)  build'
+        self.d.mk.update //\
+            '$(RUSTUP) update'
+        self.d.mk.install //\
+            (S('$(RUSTUP) $(CARGO) $(RUSTC):') //
+             "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh")
+
+    def init_readme(self):
+        super().init_readme()
+        self.d.readme.rust = S('### Rust', pfx='\n\n')
+        self.d.readme.rust // '''
+* [aleksey.kladov](https://www.youtube.com/playlist?list=PLlb7e2G7aSpTfhiECYNI2EZ1uAluUqE_e)
+    * [1. Введение (Программирование на Rust)](https://www.youtube.com/watch?v=Oy_VYovfWyo)
+    * [2. Время жизни, ADT. Программирование на Rust (весна 2019)](https://www.youtube.com/watch?v=WV-m7xRlXMs)
+
+* [Rust CS196 FA20](https://www.youtube.com/playlist?list=PLddc343N7YqhSPMjlCJa1gRDt4CzjiMYZ)
+    * [Welcome to 196! - CS196 FA20](https://www.youtube.com/watch?v=J__JvfNuknU&list=PLddc343N7YqhSPMjlCJa1gRDt4CzjiMYZ&index=1&t=795s)
+    * [Rust 1 - Lecture 17 - CS196 FA20](https://www.youtube.com/watch?v=ac7AOtkQMx4)
+    * [Rust 2 - Lecture 18 - CS196 FA20](https://www.youtube.com/watch?v=-SKih0Bu7l4)
+'''
+        self.d.readme // self.d.readme.rust
+
+
+# Rust embedded
+class rsemModule(rsModule):
+
+    def init_rust(self):
+        super().init_rust()
+
+    def init_apt(self):
+        super().init_apt()
+        self.d.apt // 'gdb-arm-none-eabi'
 
     def init_cargo(self):
         self.d.cargo = File('Cargo', ext='.toml')
@@ -1015,6 +1010,38 @@ class rsModule(dirModule):
             (self.d.cargo.dependencies //
              '[dependencies]' //
              'lazy_static = ""')
+
+    def init_readme(self):
+        super().init_readme()
+        self.d.readme.rust // """
+### Rust embedded
+
+* [Rust Lang Embedded - Установка и пример (STM32F103C8T6)](https://www.youtube.com/watch?v=IEniVrjncdk)
+"""
+
+
+# Rust server
+class rsrvModule(rsemModule):
+
+    def init_rust(self):
+        super().init_rust()
+        self.d.src.main = rsFile('main')
+        self.d.src // self.d.src.main
+        self.d.src.main.main = \
+            (rsFn('main') //
+             '//' //
+             'let argv: Vec<String> = env::args().collect();' //
+             'let argc = argv.len();' //
+             'for i in 0..argc { println!("argv[{}] = {:?}",i,argv[i]); }' //
+             '//' //
+             'hello::hello();'
+             )
+        self.d.src.main.top //\
+            'use std::env;'
+        self.d.src.main.top //\
+            'mod hello;'
+        self.d.src.main.bot //\
+            self.d.src.main.main
 
 
 class iniFile(File):

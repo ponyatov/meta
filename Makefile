@@ -19,6 +19,7 @@ S += circ.py
 S += meteo.py
 S += elixirbook.py
 S += incremento.py
+S += rustpill.py
 #S
 
 .PHONY: pep
@@ -48,6 +49,9 @@ elixirbook: $(PY) $(S)
 
 incremento: $(PY) $(S)
 	$(PY) incremento.py
+
+rustpill: $(PY) $(S)
+	$(PY) rustpill.py
 #M
 
 $(PY) $(PIP):
