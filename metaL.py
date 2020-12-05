@@ -110,6 +110,7 @@ class Object:
 
     ######################################################################
 
+    def flush(self): self.nest = []; return self
     def drop(self): self.nest.pop(); return self
 
 #######################################################################################
@@ -973,7 +974,9 @@ class emModule(dirModule):
     def mixin_mk(self):
         self.d.mk.dir //\
             f'{"FW":<9}  = $(CWD)/firmware'
-        self.d.mk.tool //\
+        self.d.mk.tool.cc = Section('cc')
+        self.d.mk.tool // self.d.mk.tool.cc
+        self.d.mk.tool.cc //\
             f'{"HOSTCC":<9}  = $(CC)' //\
             f'{"CC":<9}  = $(TARGET)-gcc' //\
             f'{"HOSTCXX":<9}  = $(CXX)' //\
@@ -1075,14 +1078,35 @@ class Fn(Meta):
 
 
 class rsFn(Fn):
+    def __init__(self, V, pfx=None, ret=None):
+        super().__init__(V)
+        self.pfx = S(pfx) if pfx else None
+        self.ret = S(f' {ret} ') if ret else ''
+
     def file(self, to, depth=0):
-        ret = S(f'{to.tab*depth}fn {self.value}() {{', '}')
+        assert isinstance(to, rsFile)
+        ret = S(f'{to.tab*depth}fn {self.value}(){self.ret}{{', '}', pfx=self.pfx)
         for j in self.nest:
             ret // j
         return ret.file(to, depth)
 
 
+class Control(Meta):
+    def file(self, to, depth=0):
+        assert isinstance(to, rsFile)
+        ret = S(f'{self} {{', '}')
+        for j in self.nest:
+            ret // j
+        return ret.file(to, depth)
+
+
+class Loop(Control):
+    def __init__(self, V='loop'):
+        super().__init__(V)
+
 # Rust generic
+
+
 class rsModule(dirModule):
     def __init__(self, V=None):
         super().__init__(V)
@@ -1174,11 +1198,12 @@ class rsModule(dirModule):
         self.d.src.main = rsFile('main')
         self.d.src // self.d.src.main
         self.d.src.main.main = Section('main')
-        self.d.src.main //\
-            (rsFn('main') // self.d.src.main.main)
+        self.d.src.main // self.d.src.main.main
+        self.d.src.main.main.body = Section('body')
+        self.d.src.main.main // (rsFn('main')//self.d.src.main.main.body)
         self.d.src.main.top //\
             'use std::env;'
-        self.d.src.main.main //\
+        self.d.src.main.main.body //\
             (Section('args') //
              'let argv: Vec<String> = env::args().collect();' //
              'let argc = argv.len();' //
@@ -1199,9 +1224,9 @@ class rsemModule(rsModule):
         self.d.memory = File('memory', ext='.x')
         self.d // self.d.memory
         self.d.memory //\
-            (S('{', '}', pfx='MEMORY')//\
-            'FLASH : ORIGIN = 0x08000000, LENGTH = 64K'//\
-            'RAM   : ORIGIN = 0x20000000, LENGTH = 20K'
+            (S('{', '}', pfx='MEMORY') //
+             'FLASH : ORIGIN = 0x08000000, LENGTH = 64K' //
+             'RAM   : ORIGIN = 0x20000000, LENGTH = 20K'
              )
 
     def mixin(self):
@@ -1211,18 +1236,19 @@ class rsemModule(rsModule):
         super().init_apt()
         self.d.apt // 'clang clang-tools'
 
-    def init_rust(self):
-        assert 1 == 2
-        super().init_rust()
-
     def init_mk(self):
         super().init_mk()
         rsemModule.mixin_mk(self)
+        #
+        self.d.mk.install.body //\
+            f'{"$(RUSTUP)":<9} {"target":<9} add thumbv7m-none-eabi'
+        #
 
     def mixin_mk(self):
-        self.d.mk.tool //\
-            f'{"CC":<9}  = clang --target=$(TARGET)' //\
-            f'{"SIZE":<9}  = llvm-size'
+        # self.d.mk.tool.cc //\
+        #     f'{"CC":<9}  = clang --target=$(TARGET)' //\
+        #     f'{"HOSTCC":<9}  = gcc' //\
+        #     f'{"SIZE":<9}  = llvm-size'
         self.d.mk.all.body.drop() //\
             '$(CARGO) build'
         # '$(CARGO) run $(MODULE).ini'
@@ -1233,14 +1259,14 @@ class rsemModule(rsModule):
 
     def init_cargo(self):
         super().init_cargo()
-        self.d.cargo.dependencies //\
+        self.d.cargo.dependencies.drop() //\
             f'{"cargo-binutils":<21}  = "*"' //\
             f'{"cortex-m":<21}  = "*"' //\
             f'{"cortex-m-rt":<21}  = "*"' //\
             f'{"cortex-m-semihosting":<21}  = "*"' //\
-            f'{"panic-halt":<21}  = "*"' //\
-            f'{"nb":<21}  = "*"' //\
-            f'{"embedded-hal":<21}  = "*"'
+            f'{"panic-halt":<21}  = "*"'
+        # f'{"nb":<21}  = "*"' //\
+        # f'{"embedded-hal":<21}  = "*"'
         self.d.cargo.dependencies //\
             '[dependencies.stm32f1xx-hal]' //\
             f'{"features":<21}  = ["stm32f100","rt"]'
@@ -1251,6 +1277,22 @@ class rsemModule(rsModule):
             f'{"name":<21}  = "{self}"' //\
             f'{"test":<21}  = false' //\
             f'{"bench":<21}  = false'
+        #
+        self.d.cargo = Dir('.cargo')
+        self.d // self.d.cargo
+        self.d.cargo.config = File('config')
+        self.d.cargo // self.d.cargo.config
+        self.d.cargo.config //\
+            '[target.thumbv7m-none-eabi]' //\
+            'runner = "qemu-system-arm -cpu cortex-m3 -machine lm3s6965evb -nographic -semihosting-config enable=on,target=native -kernel"' //\
+            '' //\
+            '[target.\'cfg(all(target_arch = "arm", target_os = "none"))\']' //\
+            '# runner = "arm-none-eabi-gdb -q -x openocd.gdb"' //\
+            '' //\
+            (S('rustflags = [', ']') // '"-C", "link-arg=-Tlink.x"') // '' //\
+            '[build]' //\
+            '# target = "thumbv6m-none-eabi" # Cortex-M0[+]' //\
+            '  target = "thumbv7m-none-eabi" # Cortex-M3"'
 
     def init_readme(self):
         super().init_readme()
@@ -1261,10 +1303,20 @@ class rsemModule(rsModule):
 * https://docs.rust-embedded.org/
     * [The Discovery book](https://docs.rust-embedded.org/discovery/)
     * [The embedded Rust book](https://docs.rust-embedded.org/book/)
+* https://github.com/rust-embedded/cortex-m-quickstart
 """
 
     def init_rust(self):
         super().init_rust()
+        self.d.src.main.top.drop() // '#![no_std]' // '#![no_main]'
+        self.d.src.main.top //\
+            'use cortex_m::asm;'//'use cortex_m_rt::entry;'
+        self.d.src.main.main.drop() //\
+            (rsFn('main', pfx='#[entry]', ret='-> !') //
+             'asm::nop();' //
+             (Loop() //
+              'asm::nop();')
+             )
 
 
 # Rust server
