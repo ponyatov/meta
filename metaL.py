@@ -1193,16 +1193,19 @@ class rsemModule(rsModule):
         super().__init__(V)
         stmModule.mixin(self)
         rsemModule.mixin(self)
+        rsemModule.mixin_cpu(self)
+
+    def mixin_cpu(self):
+        self.d.memory = File('memory', ext='.x')
+        self.d // self.d.memory
+        self.d.memory //\
+            (S('{', '}', pfx='MEMORY')//\
+            'FLASH : ORIGIN = 0x08000000, LENGTH = 64K'//\
+            'RAM   : ORIGIN = 0x20000000, LENGTH = 20K'
+             )
 
     def mixin(self):
-        rsemModule.mixin_mk(self)
-
-    def mixin_mk(self):
-        self.d.mk.tool //\
-            f'{"CC":<9}  = clang --target=$(TARGET)' //\
-            f'{"SIZE":<9}  = llvm-size'
-        self.d.mk.all.body //\
-            '$(CARGO) run $(MODULE).ini'
+        pass
 
     def init_apt(self):
         super().init_apt()
@@ -1214,8 +1217,16 @@ class rsemModule(rsModule):
 
     def init_mk(self):
         super().init_mk()
+        rsemModule.mixin_mk(self)
+
+    def mixin_mk(self):
+        self.d.mk.tool //\
+            f'{"CC":<9}  = clang --target=$(TARGET)' //\
+            f'{"SIZE":<9}  = llvm-size'
+        self.d.mk.all.body.drop() //\
+            '$(CARGO) build'
+        # '$(CARGO) run $(MODULE).ini'
         #
-        self.d.mk.all.body.drop()
         self.d.mk.install.body //\
             f'{"$(RUSTUP)":<9} {"component":<9} add llvm-tools-preview'
         # f'{"$(CARGO)":<9} {"install":<9} cargo-binutils' //\
@@ -1230,6 +1241,16 @@ class rsemModule(rsModule):
             f'{"panic-halt":<21}  = "*"' //\
             f'{"nb":<21}  = "*"' //\
             f'{"embedded-hal":<21}  = "*"'
+        self.d.cargo.dependencies //\
+            '[dependencies.stm32f1xx-hal]' //\
+            f'{"features":<21}  = ["stm32f100","rt"]'
+        self.d.cargo.bin = Section('bin')
+        self.d.cargo // self.d.cargo.bin
+        self.d.cargo.bin //\
+            '[[bin]]' //\
+            f'{"name":<21}  = "{self}"' //\
+            f'{"test":<21}  = false' //\
+            f'{"bench":<21}  = false'
 
     def init_readme(self):
         super().init_readme()
