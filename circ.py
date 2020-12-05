@@ -96,6 +96,13 @@ mod.ABOUT = """
 * bootstrap the `metaL` core with itself
   * `circ.py` is a (partial) **circular implementation** which generates its code in Python
     * use `meld` to compare and manually sync old and new code versions
+* automate new generic project creation with a few lines of Python code
+  * run `./do newProject` to open the `newProject.py` in VSCode
+  * inherit `thisModule` from one of the predefined project classes
+    * Python/Django (web & bootstrap)
+    * Erlang/Elixir (SCADA & high-load network services)
+    * C/C++/Rust    (embedded devices firmware)
+  * add extra scripts which generated some project-specific code
 """
 
 sync()
