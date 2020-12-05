@@ -565,7 +565,7 @@ class pyModule(dirModule):
         self.d.mk.all.target // '$(PY) $(MODULE).py'
         self.d.mk.all.body // '$^'
         #
-        self.d.mk.alls //\
+        self.d.mk.all //\
             (S('pep: $(PEP) $(S)', pfx='.PHONY: pep') //
                 '$(PEP) --in-place $(S)')
         #
@@ -891,14 +891,14 @@ class djModule(webModule):
         super().init_mk()
         self.d.mk.all.body.drop() //\
             f'$^ runserver {self.config.HOST}:{self.config.PORT}'
-        self.d.mk.alls //\
+        self.d.mk.all //\
             (S('migrate: $(PY) $(MODULE).py', pfx='.PHONY: migrate') //
              f'rm {self}.sqlite3' //
              '$^ $@')
-        self.d.mk.alls //\
+        self.d.mk.all //\
             (S('makemigrations: $(PY) $(MODULE).py', pfx='.PHONY: makemigrations') //
              '$^ $@')
-        self.d.mk.alls //\
+        self.d.mk.all //\
             (S('createsuperuser: $(PY) $(MODULE).py', pfx='.PHONY: createsuperuser') //
              (S('$^ $@ \\') //
               '--username dponyatov \\' //

@@ -46,7 +46,8 @@
     "requirements.*": "config",
     /* / <section:assoc> */
 },
-"editor.tabSize": 4
+"editor.tabSize": 4,
+"workbench.tree.indent": "32",
 /* / <section:mid> */
 /* \ <section:bot> */
 }

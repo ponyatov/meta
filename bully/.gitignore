@@ -13,5 +13,6 @@
 /pyvenv.cfg
 # / <section:mid>
 # \ <section:bot>
+!.gitignore
 /bully.sqlite*
 # / <section:bot>

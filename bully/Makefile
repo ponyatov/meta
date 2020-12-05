@@ -1,31 +1,33 @@
 # \ <section:var>
-MODULE    = $(notdir $(CURDIR))
-OS        = $(shell uname -s)
-MACHINE   = $(shell uname -m)
+MODULE     = $(notdir $(CURDIR))
+OS         = $(shell uname -s)
+MACHINE    = $(shell uname -m)
+NOW        = $(shell date +%d%m%y)
+REL        = $(shell git rev-parse --short=4 HEAD)
 # / <section:var>
 # \ <section:dir>
-CWD       = $(CURDIR)
-DOC       = $(CWD)/doc
-BIN       = $(CWD)/bin
-SRC       = $(CWD)/src
-TMP       = $(CWD)/tmp
+CWD        = $(CURDIR)
+DOC        = $(CWD)/doc
+BIN        = $(CWD)/bin
+SRC        = $(CWD)/src
+TMP        = $(CWD)/tmp
 # / <section:dir>
 # \ <section:tool>
-WGET      = wget -c
-PY        = $(BIN)/python3
-PIP       = $(BIN)/pip3
-PEP       = $(BIN)/autopep8
-PYT       = $(BIN)/pytest
+WGET       = wget -c
+PY         = $(BIN)/python3
+PIP        = $(BIN)/pip3
+PEP        = $(BIN)/autopep8
+PYT        = $(BIN)/pytest
 # / <section:tool>
 # \ <section:obj>
-S += $(MODULE).py
+S   += $(MODULE).py
 # / <section:obj>
-# \ <section:all>
 # \ <section:all>
 .PHONY: all
 all: $(PY) $(MODULE).py	
+	# \ <section:body>
 	$^ runserver 127.0.0.1:35472
-# / <section:all>
+	# / <section:body>
 .PHONY: pep
 pep: $(PEP) $(S)
 	$(PEP) --in-place $(S)
@@ -45,14 +47,13 @@ createsuperuser: $(PY) $(MODULE).py
 # \ <section:install>
 .PHONY: install
 install: $(OS)_install
-	# \ <section:install>
+	# \ <section:body>
 	$(MAKE) $(PIP)
 	$(MAKE) update
 	$(MAKE) migrate
 	$(MAKE) createsuperuser
 	$(MAKE) js
-	# / <section:install>
-	$(MAKE) update
+	# / <section:body>
 .PHONY: update
 update: $(OS)_update
 	# \ <section:update>
@@ -97,8 +98,6 @@ static/leaflet.js: $(TMP)/leaflet.zip
 # / <section:install>
 # \ <section:merge>
 MERGE  = Makefile README.md apt.txt .gitignore .vscode $(S)
-MERGE += static templates
-# / <section:merge>
 .PHONY: main
 main:
 	git push -v
@@ -110,3 +109,10 @@ shadow:
 	git pull -v
 	git checkout $@
 	git pull -v
+.PHONY: release
+release:
+	git tag $(NOW)-$(REL)
+	git push -v && git push -v --tags
+	$(MAKE) shadow
+MERGE += static templates
+# / <section:merge>
