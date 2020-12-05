@@ -90,6 +90,7 @@ mod.ABOUT = """
 * provide a light environment for **metaprogramming by code generation**
   * `metaL` is a special language for writing programs that write other programs (in Python, Rust,.. as *target languages*)
     * provide abilities to *work with arbitrary source code* (parsing, modification, and synthesis)
+      * write your own custom script and experimental languages
 * `metaL` is not a programming language
   * `metaL` **is a method of programming** in Python (or any other language you prefer: JS, PHP,...)
     * write scripts which generates your *target code*

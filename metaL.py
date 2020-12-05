@@ -522,8 +522,10 @@ class dirModule(Module):
             f'## {self.TITLE}' //\
             '' //\
             f'(c) {self.AUTHOR} <<{self.EMAIL}>> {self.YEAR} {self.LICENSE}' //\
-            f'{self.ABOUT}' //\
-            f'github: {self.GITHUB}/{self.MODULE}'
+            '' //\
+            f'github: {self.GITHUB}/{self.MODULE}' //\
+            '' //\
+            f'{self.ABOUT}'
 
 #######################################################################################
 
