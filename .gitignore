@@ -13,9 +13,11 @@
 /pyvenv.cfg
 # / <section:mid>
 # \ <section:bot>
+!.gitignore
 /circ/
 /SCADA/
+/flOwS/
+/rustpill/
 /meteo/
 /elixirbook/
-/rustpill/
 # / <section:bot>
